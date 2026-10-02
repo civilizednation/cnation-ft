@@ -4112,3 +4112,44 @@ battle=makeBattle(STAGES[0]);selected='kyle';buildScene();refreshUI();$('#sound'
 
 if(document.modelContext?.registerTool){const life=new AbortController();try{Promise.resolve(document.modelContext.registerTool({name:'read_tactics_battle',title:'전투 상태 확인',description:'현재 전투의 턴, 캐릭터, 지형 상태를 확인합니다. 게임 상태는 바뀌지 않습니다.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('빈 객체를 입력하세요.');return window.TACTICS.getState();}},{signal:life.signal})).catch(()=>{});}catch{}window.addEventListener('pagehide',()=>life.abort(),{once:true});}
 })();
+
+
+// ===== cnation TACTICS v0.6.1 Encyclopedia & Item Extension =====
+const CNATION_ENCYCLOPEDIA = {
+ characters:{
+  kyle:{name:"카일",class:"검사→기사→소드마스터",role:"근접 공격",skills:["화염검","아르카 참격"]},
+  ria:{name:"리아",class:"마도사→현자→아르카 메이지",role:"광역 마법",skills:["파이어","메테오"]},
+  bran:{name:"브란",class:"전사→가디언",role:"방어와 보호",skills:["도발","철벽"]},
+  sera:{name:"세라",class:"궁수→호크아이",role:"원거리 공격",skills:["관통 사격","화살비"]},
+  luna:{name:"루나",class:"사제→세인트",role:"회복과 지원",skills:["힐","정화"]},
+  nero:{name:"네로",class:"도적→섀도우",role:"후방 공격",skills:["그림자 찌르기"]}
+ },
+ items:{
+  gold:{name:"골드",type:"currency"},
+  weaponBox:{name:"무기 상자",type:"equipment"},
+  armorBox:{name:"방어구 상자",type:"equipment"},
+  potion:{name:"포션",type:"heal"},
+  accessory:{name:"악세서리",type:"equipment"}
+ }
+};
+
+function createBattleItem(type,x,z){
+ return {type:type,x:x,z:z,collected:false};
+}
+
+function collectBattleItem(item,saveData){
+ if(!item || item.collected) return null;
+ item.collected=true;
+
+ if(!saveData.inventory) saveData.inventory={gold:0,items:[]};
+
+ if(item.type==="gold"){
+  const amount=100+Math.floor(Math.random()*401);
+  saveData.inventory.gold+=amount;
+  return "골드 "+amount+" 획득";
+ }
+
+ saveData.inventory.items.push(item.type);
+ return CNATION_ENCYCLOPEDIA.items[item.type].name+" 획득";
+}
+// ===== END Extension =====

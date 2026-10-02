@@ -1,0 +1,28 @@
+cnation TACTICS v0.6.1
+
+추가 작업
+1. 백과사전 데이터 확장
+- 캐릭터 정보
+- 몬스터 정보
+- 스킬 정보
+- 아이템 정보
+
+2. 아이템 시스템 기반 추가
+- Gold
+- Weapon Box
+- Armor Box
+- Potion
+- Accessory
+
+3. 저장 확장 준비
+- encyclopedia
+- inventory
+데이터 구조 추가
+
+4. 전투 아이템 처리 함수 추가
+- spawnBattleItem()
+- collectBattleItem()
+
+주의:
+기존 전투 엔진 구조에 맞춘 확장 버전입니다.
+실제 전투 맵별 배치와 밸런스 조정은 이후 단계에서 진행합니다.
