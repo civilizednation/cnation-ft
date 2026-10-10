@@ -1,4 +1,4 @@
-# cnation TACTICS 개발 인수인계 — v0.6.46
+# cnation TACTICS 개발 인수인계 — v0.6.47
 
 ## 기준과 작업 방식
 이 폴더의 실제 게임 코드가 기준이다. 다음 기능 수정은 v0.6.40부터 순서대로 올린다.
@@ -292,3 +292,6 @@ combatGuideHTML은 10개 펼침 항목과 모바일 표를 생성한다. showEnc
 
 ## v0.6.46 스킬 시연
 스킬 탭은 codexSkillCard와 codexSkillPreviews 사용. 독립 시연 그룹으로 실제 전투 perform/spellEffect를 호출하지 않음. 실제 캐릭터/몬스터 figure만 재사용. 4.8초 시전/이동/도착/상태 또는 지원 효과 루프, 저장 상태 비변경. 보이는 canvas만 공유 WebGLRenderer에서 2D 복사, previewCleanup으로 정리.
+
+## v0.6.47 광역마법 감쇠
+areaDamageFactor(s,center,target): magic && area>0만 적용. center 100%, 거리1 80%, 거리2이상60%. square는 max(dx,dz), 나머지는 dist. estimate 네 번째 인자는 지정 중심이며 기본값 대상. perform 계획 피해와 forecastHP는 실제 지정 중심 전달. 테스트 estimate는 선택적 center 지원. 최종 예상 반올림 전에 감쇠 적용, 이후 기존 ±5%/치명타. 상태/지원/물리 광역 비변경. 다음 버전은 v0.6.48.
