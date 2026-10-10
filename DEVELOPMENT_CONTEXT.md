@@ -1,4 +1,4 @@
-# cnation TACTICS 개발 인수인계 — v0.6.47
+# cnation TACTICS 개발 인수인계 — v0.6.48
 
 ## 기준과 작업 방식
 이 폴더의 실제 게임 코드가 기준이다. 다음 기능 수정은 v0.6.40부터 순서대로 올린다.
@@ -295,3 +295,6 @@ combatGuideHTML은 10개 펼침 항목과 모바일 표를 생성한다. showEnc
 
 ## v0.6.47 광역마법 감쇠
 areaDamageFactor(s,center,target): magic && area>0만 적용. center 100%, 거리1 80%, 거리2이상60%. square는 max(dx,dz), 나머지는 dist. estimate 네 번째 인자는 지정 중심이며 기본값 대상. perform 계획 피해와 forecastHP는 실제 지정 중심 전달. 테스트 estimate는 선택적 center 지원. 최종 예상 반올림 전에 감쇠 적용, 이후 기존 ±5%/치명타. 상태/지원/물리 광역 비변경. 다음 버전은 v0.6.48.
+
+## v0.6.48 연출 공유
+공격 준비·복귀·피격과 투사체·주문은 선택적 ctx로 전투/백과사전 공유. ctx는 world/models/fx/speed/cancelled를 가지며 실제 전투 상태와 소리를 건드리지 않음. tween과 spellEffect는 프레임 시간 적분으로 가변 속도를 지원. criticalShot elapsed/preDuration은 실제 타격 전 nominal time 기준; advanceCritical로 속도1→.2, zoom1→3. criticalImpact에서 즉시 정상 속도, 화면은650ms복귀 후finally정리. 예시 화면은 공유renderer1개/가시canvas만render, 탭 전환 시 ctx.cancelled 및 geometry/renderer정리. 다음 버전0.6.49.
