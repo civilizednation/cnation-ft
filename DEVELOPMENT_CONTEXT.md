@@ -1,4 +1,4 @@
-# cnation TACTICS 개발 인수인계 — v0.6.53
+# cnation TACTICS 개발 인수인계 — v0.6.55
 
 ## 기준과 작업 방식
 이 폴더의 실제 게임 코드가 기준이다. 다음 기능 수정은 v0.6.40부터 순서대로 올린다.
@@ -320,3 +320,15 @@ Gear catalog slot은 여전히0/1/2. party.equipped는0무기/1방어구/2악세
 
 ## v0.6.53 긴 내장전투 BGM
 BATTLE_VARIATIONS5종(4/5/6/7/11) B/C주제 및 battleMusicPlan(id,cycleIndex)16chunks. chunk=cycleIndex%16;4bars×16=64bars. loopCycle는기존16beats예약으로4bars만오디오노드생성. 곡장면별 BPM유지(130/122/146/112/138). energy/lead/arp/counter/chords/melody를계획에서적용. 최종11번장조는chunk12~15. 일반장면은arrangement null로기존4bars 유지. volume.375그대로. test전용renderMusic OfflineAudioContext 및 musicPlan 노출. loopCycle(schedule=false)는테스트전용오프라인예약. 다음0.6.54.
+
+## v0.6.54 CRIT balance
+finalCriticalRate 일반.1~.2 네로.18~.25. heroStats장비합산후clamp. targetCriticalRate(a,s,center,target)는area>0시중심x,z만 허용, 아니면0. perform계획과forecast동일사용. equipmentCriticalRate는normalizeSave 안의live/retry아군을 TDZ save참조없이pure inventory로갱신. 기본10/10/10/12/10/18, Kyle전직+5, 장비치명타축소. 몬스터변경없음. 거리감쇠는유지. 다음0.6.55.
+
+## v0.6.55 HP/승리/추가요청
+party.hpRatio optional0~1, legacy기본1. 승리XP후applyVictoryRecovery 계산, 원래죽었던자는fallenSet으로0복원후50%revive. chapterFinalStage는별도boss우선/없으면story최대n. 다음battleHP round(maxHp*ratio), 최소1. MP새시작full. 같은chapter이어가기적용, 마지막보스승리allparty ratio1. retryParty기존스냅샷이ratio포함.
+rollHealthPotion은소.6/중.3/대.1. makePickups추가포션.5, applyVictoryRecovery에승리포션1확정. normal유형pickup/gold계산기존유지. collectVictoryLoot는살아있는hero복사로필드물품quiet수거, real좌표불변. summary.items는회수연출용plainJSON. reward.recovery와autoLoot는finishBattle에서1회적용및persist후showResult.
+showVictoryCelebration/victoryPreview 자체WebGLRenderer/정면figure/HP보간/차임/포션및lootCSS연출, previewCleanup으로정리. custom은확인후기존customresult, story는map또는ending. old victorysave recovery없으면기존result로진행(추가지급없음).
+physicalMaxMP와skillCost/heroStats/normalizeLiveMP/phaseStart/UI가격동일연동. 일반skill+2*c, ultimate그대로. 근접3basicpower1.1/DEF+3. 새mpbudget16/14/16/16에class5, gear상한20+6c. 현재battle동료DEF보정은새전투부터, legacyMP는불러오면서상한반영.
+showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바꾸는위치유지. CriticalNotice는renderLoop의criticalShot에연동. 다음v0.6.56.
+
+저장불러오기순서상 heroDef arrowconst 초기화전 normalized crit/MP조회문제를 HEROES.find로해결. verify-v55.cjs 및verify-v55-extra.cjs 통과. VictoryConfirm sticky bottom으로짧은화면에서도확인버튼접근가능. 실기iPhone테스트는별도필요.
