@@ -1,4 +1,4 @@
-# cnation TACTICS 개발 인수인계 — v0.6.49
+# cnation TACTICS 개발 인수인계 — v0.6.50
 
 ## 기준과 작업 방식
 이 폴더의 실제 게임 코드가 기준이다. 다음 기능 수정은 v0.6.40부터 순서대로 올린다.
@@ -301,3 +301,13 @@ areaDamageFactor(s,center,target): magic && area>0만 적용. center 100%, 거�
 
 ## v0.6.49 마지막 대기 방향
 confirmAction과 useConsumable에서 beginFacing 호출 제거. waitUnit만 호출, acted&&moved여도 turnFinished가 아니면 대기 허용. finishFacing은 turnFinished=true. afterAction/askEndTurn는 turnFinished 기준, phaseStart에서 초기화하며 행동불가 상태는 완료 처리. 다음 버전0.6.50.
+
+## v0.6.50 장비 파밍 기준
+GEAR_KINDS 8종류, GEAR 새288종 + 기존ID12종 legacy. band=chapter<2?0:<5?1:<8?2:3, tier0/1/2와 독립. id는lootgear-kind-band-tier-variant. bonus/price/sell/users는 정적 생성, 인벤토리에는 uid/gearId만 유지. 기존gear-slot-oldtier IDs/보너스/장착 상태 보존. legacy는 신규드롭/상점/도감 제외.
+makePickups는 일반1+Bernoulli(.5), 희귀Bernoulli(.3), 유니크Bernoulli(.1), 골드Bernoulli(.5) 독립 추첨. 후보는 아군 이동 가능 연결 지형, 위치 중복 금지/거리3 우선, 무작위 분산. 완료 스테이지도 신규 생성 허용. normalizeSave/retry에서 완료 여부로 loot제거하던 코드 삭제. retry 스냅샷은 loot/골드/인벤토리 되돌림으로 재추첨 및 중복 획득 방지.
+gearCompatible: sword Kyle/Bran/Nero, bow Sera, staff Ria/Luna; 방어구와악세서리 전원. legacy는 호환 보존. 기존3슬롯 유지, 악세서리(부적/반지/장화/마력석) 한개만. showInventory는 equipmentComparison(heroStats의 후보 복사)로 전체9능력 비교하고 명시적 장착 버튼 후 persist. 선택/캐릭터 전환은 세이브 비변경.
+gearParts는 실제 모델 크기/형태를 band/kind/tier별로 생성. 아이템 초상화는 같은종류 공통 카메라 크기로 성장 크기 차이를 유지. gearThumb CSS 푸른/금빛, refreshLoot 추가 additive 빛. figure는 장착 무기의 parts를 축소/손위치 정렬하여 기본무기 대체.
+gearCatalogHTML은 도감에서 band/kind 필터로9품씩 모델 생성. 전체288품을 한 화면에 렌더하지 않음. 기존 총53스테이지/6캐릭터/30스킬 유지. 외부 BGM 보류.
+다음버전0.6.51.
+
+검증 스크립트 verify-v50.cjs, verify-v50-compat.cjs, verify-v50-facing.cjs 모두통과. 브라우저 예외 없음. 실제iPhone Safari 실기 검증은 별도 필요.
