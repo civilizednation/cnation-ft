@@ -1,4 +1,4 @@
-# cnation TACTICS 개발 인수인계 — v0.6.50
+# cnation TACTICS 개발 인수인계 — v0.6.53
 
 ## 기준과 작업 방식
 이 폴더의 실제 게임 코드가 기준이다. 다음 기능 수정은 v0.6.40부터 순서대로 올린다.
@@ -311,3 +311,12 @@ gearCatalogHTML은 도감에서 band/kind 필터로9품씩 모델 생성. 전체
 다음버전0.6.51.
 
 검증 스크립트 verify-v50.cjs, verify-v50-compat.cjs, verify-v50-facing.cjs 모두통과. 브라우저 예외 없음. 실제iPhone Safari 실기 검증은 별도 필요.
+
+## v0.6.51 악세서리2칸
+Gear catalog slot은 여전히0/1/2. party.equipped는0무기/1방어구/2악세1/3악세2. validSave는3·4칸 둘 다 받아 migrateLegacyGear에서4칸으로 연장. heroStats는4칸 합산. equipmentComparison은targetSlot 인자, inventory는preferredAccessory로 선택 칸 전달 및data-accessory-target로 변경. unwear는UID indexOf로 실제칸제거. gear.slot검증은Math.min(i,2). 기존legacy equip배열3 및ID 유지. 기본custom 장비4개. 드롭 희귀.2/유니크.05, docs일치. 다음버전0.6.52.
+
+## v0.6.52 title-active
+초기HTML의 title-active와 refreshUI class toggle로 타이틀 초기 렌더도 동일. 헤더는 로고hide/toolbar만absolute상단. 타이틀 logo은별도62px+safeTop부터시작. viewtools/legend만 타이틀숨김, 전투/메뉴동작유지. versionlabel은숫자만. 다음버전0.6.53.
+
+## v0.6.53 긴 내장전투 BGM
+BATTLE_VARIATIONS5종(4/5/6/7/11) B/C주제 및 battleMusicPlan(id,cycleIndex)16chunks. chunk=cycleIndex%16;4bars×16=64bars. loopCycle는기존16beats예약으로4bars만오디오노드생성. 곡장면별 BPM유지(130/122/146/112/138). energy/lead/arp/counter/chords/melody를계획에서적용. 최종11번장조는chunk12~15. 일반장면은arrangement null로기존4bars 유지. volume.375그대로. test전용renderMusic OfflineAudioContext 및 musicPlan 노출. loopCycle(schedule=false)는테스트전용오프라인예약. 다음0.6.54.
