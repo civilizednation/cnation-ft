@@ -1,10 +1,31 @@
-v0.6.56 장비 화면 개선
+v0.6.60 공격 후 실제 결과 창 삭제
+- 공격 후 하단 정보창의 실제 결과 패널 삭제. 방향 선택 화면에서도 표시하지 않음.
+- 공격 전 예상 피해·HP 비교, 타격 피해 숫자, 체력바/현재 HP 표시 유지. 백과사전 설명 반영.
+
+v0.6.60 착용 장비 해제
+- 현재 착용 장비 칸 또는 비교창 현재 장비 이미지를 선택하면 장착 해제 버튼 표시.
+- 무기·방어구·액세서리 1·2 모두 적용. 착용 액세서리의 실제 칸으로 선택.
+- 해제 후 동일 아이템은 미장착 보관함 목록으로 이동, 능력치/캐릭터 모습 갱신. 해제한 아이템을 계속 선택해 재장착 또는 판매 가능.
+- 전투 중 해제/장착/판매 및 다른 캐릭터 장비 임의 해제 제한 유지.
+
+v0.6.60 장비 비교 판매
+- 비교창 하단에 장착/교체 장착과 판매 버튼을 같은 폭으로 나란히 표시.
+- 판매 버튼에 판매가 표시. 선택한 미장착 장비를 즉시 판매하고 골드/보관함 갱신, 판매 안내 표시.
+- 장착 중인 장비와 전투 중 판매 금지 유지. 사용 불가 장비도 미장착 상태라면 판매 가능.
+- 같은 아이템 중복 판매 차단, 기존 장착 아이템 유지.
+
+v0.6.60 치명타 카메라
+- 근접 물리 치명타: 공격 캐릭터 중심으로 확대. 화염검 등 근접 속성 기술도 동일.
+- 원거리·투사체·마법 치명타: 실제 치명타를 맞는 대상과 타격 이펙트 중심으로 확대. 적 원거리 공격에도 동일 적용.
+- 3배 확대와 점진적 슬로우/타격 후 정상 속도 복귀 유지. 확대 중 대상 위치를 추적하고 타격 후 원래 카메라 위치로 복귀.
+
+v0.6.60 장비 화면 개선
 - 파티 관리와 장비 보관함에 동일한 2열 장비 배치 적용. 캐릭터는 최상단, 무기·방어구는 그 아래, 액세서리 1·2는 같은 줄.
 - 장비 보관함의 현재 착용 모습은 미장착 아이템 목록 위에 배치.
 - 아이템 이미지와 이름 양쪽에서 동일한 비교/선택 기능 제공. 판매·해제 버튼과 분리하여 오동작 방지.
 - 기존 4개 장착 칸과 장착 확인 절차 유지.
 
-# cnation TACTICS 개발 인수인계 — v0.6.56
+# cnation TACTICS 개발 인수인계 — v0.6.60
 
 ## 기준과 작업 방식
 이 폴더의 실제 게임 코드가 기준이다. 다음 기능 수정은 v0.6.40부터 순서대로 올린다.
@@ -328,15 +349,23 @@ Gear catalog slot은 여전히0/1/2. party.equipped는0무기/1방어구/2악세
 BATTLE_VARIATIONS5종(4/5/6/7/11) B/C주제 및 battleMusicPlan(id,cycleIndex)16chunks. chunk=cycleIndex%16;4bars×16=64bars. loopCycle는기존16beats예약으로4bars만오디오노드생성. 곡장면별 BPM유지(130/122/146/112/138). energy/lead/arp/counter/chords/melody를계획에서적용. 최종11번장조는chunk12~15. 일반장면은arrangement null로기존4bars 유지. volume.375그대로. test전용renderMusic OfflineAudioContext 및 musicPlan 노출. loopCycle(schedule=false)는테스트전용오프라인예약. 다음0.6.54.
 
 ## v0.6.54 CRIT balance
-finalCriticalRate 일반.1~.2 네로.18~.25. heroStats장비합산후clamp. targetCriticalRate(a,s,center,target)는area>0시중심x,z만 허용, 아니면0. perform계획과forecast동일사용. equipmentCriticalRate는normalizeSave 안의live/retry아군을 TDZ save참조없이pure inventory로갱신. 기본10/10/10/12/10/18, Kyle전직+5, 장비치명타축소. 몬스터변경없음. 거리감쇠는유지. 다음0.6.56.
+finalCriticalRate 일반.1~.2 네로.18~.25. heroStats장비합산후clamp. targetCriticalRate(a,s,center,target)는area>0시중심x,z만 허용, 아니면0. perform계획과forecast동일사용. equipmentCriticalRate는normalizeSave 안의live/retry아군을 TDZ save참조없이pure inventory로갱신. 기본10/10/10/12/10/18, Kyle전직+5, 장비치명타축소. 몬스터변경없음. 거리감쇠는유지. 다음0.6.60.
 
-## v0.6.56 HP/승리/추가요청
+## v0.6.60 HP/승리/추가요청
 party.hpRatio optional0~1, legacy기본1. 승리XP후applyVictoryRecovery 계산, 원래죽었던자는fallenSet으로0복원후50%revive. chapterFinalStage는별도boss우선/없으면story최대n. 다음battleHP round(maxHp*ratio), 최소1. MP새시작full. 같은chapter이어가기적용, 마지막보스승리allparty ratio1. retryParty기존스냅샷이ratio포함.
 rollHealthPotion은소.6/중.3/대.1. makePickups추가포션.5, applyVictoryRecovery에승리포션1확정. normal유형pickup/gold계산기존유지. collectVictoryLoot는살아있는hero복사로필드물품quiet수거, real좌표불변. summary.items는회수연출용plainJSON. reward.recovery와autoLoot는finishBattle에서1회적용및persist후showResult.
 showVictoryCelebration/victoryPreview 자체WebGLRenderer/정면figure/HP보간/차임/포션및lootCSS연출, previewCleanup으로정리. custom은확인후기존customresult, story는map또는ending. old victorysave recovery없으면기존result로진행(추가지급없음).
 physicalMaxMP와skillCost/heroStats/normalizeLiveMP/phaseStart/UI가격동일연동. 일반skill+2*c, ultimate그대로. 근접3basicpower1.1/DEF+3. 새mpbudget16/14/16/16에class5, gear상한20+6c. 현재battle동료DEF보정은새전투부터, legacyMP는불러오면서상한반영.
-showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바꾸는위치유지. CriticalNotice는renderLoop의criticalShot에연동. 다음v0.6.56.
+showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바꾸는위치유지. CriticalNotice는renderLoop의criticalShot에연동. 다음v0.6.60.
 
 저장불러오기순서상 heroDef arrowconst 초기화전 normalized crit/MP조회문제를 HEROES.find로해결. verify-v55.cjs 및verify-v55-extra.cjs 통과. VictoryConfirm sticky bottom으로짧은화면에서도확인버튼접근가능. 실기iPhone테스트는별도필요.
 
 검증: Chromium 320/390/500px 화면에서 캐릭터 상단·무기/방어구 같은 줄·액세서리 같은 줄과 가로 넘침 없음 확인. 보관함 이미지 터치로 선택, 장착 확인 전 미장착 유지, 액세서리 1·2 독립 장착 및 런타임 오류 없음 확인.
+
+검증: Chromium에서 카일 기본 공격/화염검, 세라 기본 활 공격, 리아 파이어의 치명타를 재현. 근접은 공격자, 원거리는 실제 치명타 대상 중심과 카메라 좌표 일치, Critical !! 표시, 타격 후 카메라 복귀 확인. 런타임 예외 없음.
+
+검증: Chromium 320/390/500px에서 비교창 두 버튼 동일 폭·같은 줄 확인. 즉시 판매 후 골드/보관함 갱신, 기존 착용 장비 유지, 중복 판매 방지, 착용 중/전투 중 판매 금지 확인. 런타임 예외 없음.
+
+검증: Chromium에서 네 장착 칸 각각 선택/해제/미장착 목록 이동/재장착 확인. 비교창 현재 이미지 선택, 해제 후 판매, 전투 중 해제 제한, 아이템 수와 골드 보존 확인. 런타임 예외 없음.
+
+검증: Chromium에서 공격 전 예상 정보 유지, 실제 공격 피해 적용, 공격 후 및 방향 선택 시 실제 결과 패널 없음 확인. 런타임 오류 없음.
