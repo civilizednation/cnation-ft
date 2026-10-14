@@ -1,0 +1,30 @@
+cnation TACTICS v0.7.8 — enemy AI / elemental forecast QA
+==========================================================
+Base: complete v0.7.7 enemy-damage ZIP (20 files)
+
+Changed:
+- Frontline capacity automatically follows living ally count and difficulty:
+  STORY: 2; NORMAL: 2,2,3,3,4; TACTICAL: 2,3,3,4,5 for 2–6 allies.
+- Dynamic reserve promotion after an enemy dies, via phase plan invalidation.
+- Eliminated forced minimum movement credit of 3. Fractional credit is carried
+  per enemy as approachCredit and capped at normal adjusted movement.
+- Frontline, ranged, flanker and caster AI target/position preferences;
+  ranged/casters can attack at their own range, with more distance discipline.
+- Difficulty-dependent coordination and element advantage target scoring.
+- Attack preview shows element vs target, 125/100/75%, pre-affinity base,
+  exact base estimated damage from estimate(), random ±5% damage range,
+  current and post-attack HP, hit and crit probabilities.
+- Existing HP +30%, enemy damage +30%, inventory, skills, mission/story,
+  save data version 1, and service worker update mechanism preserved.
+
+Automated tests:
+- node --check game.js: PASS
+- node test078_unit.cjs: PASS (34 assertions for party-size thresholds,
+  movement budget, reserves, legacy missing credit, AI roles, forecast,
+  actual damage estimate and cache versions)
+- ZIP integrity: verified with unzip -t after packing.
+
+Limitations:
+- Actual browser runtime smoke test unavailable: the browser environment
+  blocks file:/// navigation with ERR_BLOCKED_BY_ADMINISTRATOR.
+- Full end-to-end gameplay balance and saved-game replay require user testing.
