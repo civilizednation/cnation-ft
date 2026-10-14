@@ -409,3 +409,6 @@ showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바
 - 타이틀에서 저장/불러오기 선택 시 스토리/미션/커스텀 테스트 중 하나를 먼저 선택해야 함.
 - 타이틀에서 저장은 현재 게임 상태 저장이 아니라 해당 모드의 기존 자동 저장 기록을 수동 슬롯으로 복사함. 자동 저장 없으면 비활성화.
 - 기존 localStorage 자동 저장 키, IndexedDB 슬롯 키/구조, JSON 내보내기 및 가져오기 형식 유지.
+
+## v0.7.3 difficulty balance
+STORY: 80% HP/ATK/MAG, -1 enemy, one Kyle emergency rescue per battle (40% HP + DEF status for 2 starts), clearer boss warning and prologue hint. NORMAL unchanged. TACTICAL: 115% HP/ATK/MAG, +1 enemy, smarter priority/position selection, boss cluster targeting and 15% tougher summoned adds. See QA_v0.7.3_difficulty.txt. No save schema migration; optional `battle.beginnerRescueUsed` persists with the battle.
