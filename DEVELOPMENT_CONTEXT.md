@@ -395,3 +395,17 @@ showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바
 - 프롤로그에는 기존 별도 보스전이 없어 마지막 본편 전투가 종료 지점. FINAL은 기존 c9s2 종료.
 - 커스텀 테스트 메뉴 유지.
 - 테스트: node --check, 10개 챕터 데이터 테스트, 기존 500+300 생성 및 13 스킬, 파티클 모의 테스트 통과. 브라우저 WebGL 통합 테스트는 실행 환경 제약으로 미완료.
+
+## v0.7.2 로컬 저장/불러오기
+- `game.js` `showSaveManager`가 게임/타이틀 공통 저장 UI.
+- 자동 저장은 기존 `SAVE_KEY`, `MISSION_SAVE_KEY`, `CUSTOM_SAVE_KEY` localStorage 키 유지. 새 `-saved-at` 메타데이터 추가.
+- 수동 슬롯은 IndexedDB `cnation-tactics-local-saves` / `slots` 스토어, 키 `story:1` ~ `custom:3`. IndexedDB 실패 시 `cnation-tactics-slot-v2:` 접두 localStorage 대체.
+- JSON 내보내기는 `cnation-tactics-backup-v2` envelope, 가져오기는 기존 story raw JSON도 허용.
+- PWA는 Safari ITP 7일 정리 예외이나 사용자 삭제, 기기 공간 부족 등으로 데이터 손실 가능. 사용자에게 백업 안내.
+- 저장 슬롯은 모드별 3개이며, 모드별 진행과 자동 저장 분리. 게임 저장 데이터 스키마 `version:1` 유지.
+
+## v0.7.2 저장 메뉴 모드 선택 UI 보완
+- 게임 내 저장/불러오기는 현재 모드만 관리. 모드 변경 컨트롤 없음.
+- 타이틀에서 저장/불러오기 선택 시 스토리/미션/커스텀 테스트 중 하나를 먼저 선택해야 함.
+- 타이틀에서 저장은 현재 게임 상태 저장이 아니라 해당 모드의 기존 자동 저장 기록을 수동 슬롯으로 복사함. 자동 저장 없으면 비활성화.
+- 기존 localStorage 자동 저장 키, IndexedDB 슬롯 키/구조, JSON 내보내기 및 가져오기 형식 유지.
