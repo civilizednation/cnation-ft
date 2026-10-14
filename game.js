@@ -4733,8 +4733,10 @@ function makeElementalAura(u,parent=elementalAuraGroup){
  if(!['fire','water','wind'].includes(kind))return null;
  const group=new THREE.Group();
  const power=u.boss?1.5:u.elite?1.2:1;
- // v0.7.0: 5/7/9. Increase density by at least 50%, with distinct silhouettes.
- const count=u.boss?14:u.elite?11:8;
+ // v0.7.2 visual tuning: retain fire density; halve water/wind density.
+ // Shared by combat and codex previews to keep their appearance consistent.
+ const fireCount=u.boss?14:u.elite?11:8;
+ const count=kind==='fire'?fireCount:Math.ceil(fireCount*.5);
  const palettes={fire:[0xff3428,0xff7b20,0xffdc39,0xffac2c],water:[0x2aaaff,0x66d8ff,0xc5f7ff],wind:[0x79dcff,0xf2fdff,0xa9ecff]};
  for(let i=0;i<count;i++){
   let geometry;
