@@ -369,3 +369,21 @@ showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바
 검증: Chromium에서 네 장착 칸 각각 선택/해제/미장착 목록 이동/재장착 확인. 비교창 현재 이미지 선택, 해제 후 판매, 전투 중 해제 제한, 아이템 수와 골드 보존 확인. 런타임 예외 없음.
 
 검증: Chromium에서 공격 전 예상 정보 유지, 실제 공격 피해 적용, 공격 후 및 방향 선택 시 실제 결과 패널 없음 확인. 런타임 오류 없음.
+
+## v0.6.61 속성 전략 패치
+기본 5개 스킬 슬롯은 유지하고 추가 스킬은 각 SKILLS.unlock으로 해금. MONSTER_POOLS와 ELEMENTAL_NEW를 함께 사용해 모든 신규 전투에 속성 몬스터 보장. monsterAdvice/elementDetails로 정보 UI와 도감 표시. 별도 elementalAuraGroup은 전투 장면 빌드 시 해제. 기존 저장 전투는 재생성하지 않음.
+
+### v0.6.61 audit2
+- v0.6.61-complete 코드 리뷰: 속성 출현 강제, 3D 파티클, 세라 3속성 화살, 카일 신규 검술은 구현 확인.
+- `makeBattle()`의 보장 조건을 불/물/바람 3종만 판정하도록 보완.
+- `spellEffect()`의 물 속성 색상을 추가하고 `perform()`의 물 피격 색상도 보완.
+- `waterwave`는 유해 상태만 해제하며 버프는 유지. 보스는 `slow` 이동 감소에 면역.
+- JS 구문/전투 생성/파티클 모의 테스트 완료. 실제 모바일 WebGL 렌더링은 별도 검증 필요.
+
+## v0.6.61 CODEX AURA PATCH (2026-10-14)
+- 백과사전 몬스터/보스 목록과 상세의 3D 모델에 전투와 동일한 속성 파티클을 부착한다.
+- `makeElementalAura(u, parent=elementalAuraGroup)`는 전투(기본 parent)와 도감(모델 parent) 모두 사용한다.
+- `animateElementalAura(group, ms)`는 전투 및 도감 프리뷰가 공유하는 동일한 애니메이션이다.
+- `codexListPreview()`는 각 모델 생성 시 오라를 자식으로 생성하고, 보이는 캔버스만 갱신하며 기존 단일 렌더러를 유지한다.
+- `modelPreview()`는 enemy 모델에만 오라를 부착한다. 상세 일반 몬스터는 일반/정예 3D 연출 토글을 제공하며 스탯은 일반 몬스터 기준이다.
+- WebGL 실기기 검증은 별도 필요. 코드 테스트는 `node --check game.js` 및 별도 Node 모의 렌더링 테스트로 수행.
