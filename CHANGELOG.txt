@@ -368,3 +368,24 @@ v0.6.60 장비 화면 개선
 - 화면 전환 시 3D 미리보기 파티클 메시·재질·지오메트리 정리, 목록은 기존 단일 렌더러 방식 유지.
 - PWA game.js 리소스 버전 및 서비스 워커 캐시 키 변경. 세이브/밸런스 변경 없음.
 - Node.js 구문 검사 및 속성×등급 12종 로직 테스트 통과. 실제 WebGL 화면 테스트는 환경의 WebGL 컨텍스트 생성 실패로 미완료.
+
+
+=== v0.7.0 / STORY & MISSION MODES ===
+- Title menu: separate story mode and mission mode.
+- Mission mode: 10 chapters, difficulty selection, chapter-based automatic party and gear.
+- Mission chapter-only progression, victory history and chapter-clear summary.
+- Separate mission save, story save untouched, custom test menu retained.
+- Version and cache bumped to v0.7.0.
+
+cnation TACTICS v0.7.1 — 속성 파티클 시인성 개선
+
+기준: v0.7.0 story/mission 전체 소스
+
+- 불: 빨강·주황·노랑 불꽃 혼합. 기본 파티클 5→8개, 정예 7→11개, 보스 9→14개 (최소 50% 증가).
+- 바람: 하늘색·흰색 곡선형 바람 자취. 파티클 수 동일한 비율로 증가.
+- 물: 몬스터 상체 위쪽에서 시작해 몸의 양옆을 따라 바닥까지 아래로 떨어지는 반복 물방울. 밝은 청색/흰색 물방울과 눈물방울 모양 적용.
+- 전투 및 백과사전 목록/상세/보스 미리보기: 같은 생성 및 애니메이션 함수를 공유.
+- 게임 로직, 상성, 스토리·미션 모드, 커스텀 테스트, 저장 데이터 구조 유지.
+- 서비스워커 캐시와 파일 쿼리 버전 갱신.
+
+검증: JavaScript 구문 검사, 파티클 생성/애니메이션 모의 검사, ZIP 무결성 검사. 실제 모바일 WebGL 화면은 별도 확인 권장.

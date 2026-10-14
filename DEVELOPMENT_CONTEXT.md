@@ -387,3 +387,11 @@ showSheet options.scrollTop과 focus preventScroll로showEncyclopedia subtype바
 - `codexListPreview()`는 각 모델 생성 시 오라를 자식으로 생성하고, 보이는 캔버스만 갱신하며 기존 단일 렌더러를 유지한다.
 - `modelPreview()`는 enemy 모델에만 오라를 부착한다. 상세 일반 몬스터는 일반/정예 3D 연출 토글을 제공하며 스탯은 일반 몬스터 기준이다.
 - WebGL 실기기 검증은 별도 필요. 코드 테스트는 `node --check game.js` 및 별도 Node 모의 렌더링 테스트로 수행.
+
+
+## v0.7.0 신규 게임 모드
+- 스토리 모드: 기존 SAVE_KEY 사용, 프롤로그부터 FINAL까지 유지.
+- 미션 모드: MISSION_SAVE_KEY 분리, 10개 챕터 선택, 해당 챕터 본편 전투 및 보스(존재 시) 진행, 자동 레벨·전직·장비·회복약 지급, 챕터 클리어 히스토리 표시.
+- 프롤로그에는 기존 별도 보스전이 없어 마지막 본편 전투가 종료 지점. FINAL은 기존 c9s2 종료.
+- 커스텀 테스트 메뉴 유지.
+- 테스트: node --check, 10개 챕터 데이터 테스트, 기존 500+300 생성 및 13 스킬, 파티클 모의 테스트 통과. 브라우저 WebGL 통합 테스트는 실행 환경 제약으로 미완료.
