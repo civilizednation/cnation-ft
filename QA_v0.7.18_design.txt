@@ -1,0 +1,9 @@
+v0.7.18 검증
+- node --check game.js 통과.
+- Chromium WebGL: 아군 6명 및 3단계 클래스 모델 생성, 전체 몬스터 모델 생성. 좌표/정점 유효성 통과.
+- 아군별 무기 종류/등급/챕터 단계 모델 생성 통과.
+- 6명과 인간형 적 4종의 실제 렌더링 이미지 검토.
+- 전투 캐릭터 선택·근접 공격·방향 선택·도감 실행 통과. 런타임 예외 없음.
+- heroStats/skillCost/physicalMaxMP/estimate/perform/makeBattle 함수가 첨부 v0.7.17과 동일함 확인.
+- 본체 기준 약 1,806~2,522 triangles. 공유 재질과 병합 Mesh 사용 유지.
+- 실제 iPhone Safari 기기 성능 검증은 수행하지 않음.

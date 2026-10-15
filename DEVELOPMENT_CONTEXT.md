@@ -1,3 +1,14 @@
+# v0.7.18 디자인 적용
+
+현재 디자인 변경은 CHANGELOG.txt를 참고하세요. v0.7.17 첨부 소스에서 그래픽 생성만 수정했습니다.
+- detailedHeroParts: 공통 몸체/얼굴 + 6명별 장식/무기.
+- helmetEnemyParts: 인간형 적의 투구/안광 + 병종별 무기.
+- bake: Z→X→Y 회전, torus 공유 geometry 추가.
+- 장착 무기 중복 방지를 위해 기본 무기는 weaponGear가 없을 때만 생성.
+- 공유 body Mesh 구조를 유지해 기존 애니메이션과 모든 공통 미리보기 호환.
+- QA 전용 ?test API에 designStats/designPortrait 추가. 일반 실행에서는 노출하지 않음.
+
+## 기존 게임 개발 컨텍스트
 # cnation TACTICS v0.7.12 개발 컨텍스트
 
 ## 게임 목표 및 이번 변경
@@ -116,7 +127,7 @@ cnation TACTICS v0.7.14 QA — 1~9 integrated balance audit
 - 도감/도움말/새게임 설명/버전 문자열을 실제 로직과 동기화한다.
 
 
-## v0.7.17 — 네로 전용 MP 성장
+## v0.7.18 — 네로 전용 MP 성장
 - 네로는 속성/상태이상 물리 스킬 운용을 위해 물리 영웅 공용 MP cap에서 분리.
 - 기본/1차/2차 전직 최대 MP를 각각 24/30/36으로 설정.
 - 장비 maxMp 보너스는 별도 가산.
