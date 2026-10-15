@@ -100,3 +100,24 @@ cnation TACTICS v0.7.14 QA — 1~9 integrated balance audit
 - 스토리 신규 동료: join 챕터보다 먼저 합류한 동료들의 현재 평균 레벨을 반올림하여 최초 1회 적용. 해당 챕터 기본 합류 레벨(1+join×3)을 최솟값으로 보장. 이미 합류한 동료를 다시 조정하지 않음.
 - 이전 저장 Lv.41~50은 로드 시 Lv.40, EXP 0으로 변환; 전직·장비·재화·스토리·미션 기록 보존. 저장 스키마 version=1 유지, 검증 단계에서 기존 Lv.50 허용 후 정규화. 진행 중인 전투는 전투 종료 후 새 전투부터 재계산.
 - 미션/커스텀은 명시적인 파티 생성 레벨 유지. 테스트 커스텀 레벨 선택 상한 40.
+
+
+## v0.7.16 — 1~20 밸런스/문서 동기화 패치
+- v0.7.15의 챕터별 enemyCombatStats 성장 곡선과 enemyApproachPlan은 유지한다.
+- TACTICAL cap만 42/54/63%로 완화하여 일반몹 순간 삭제 억제를 우선한다.
+- stageFirstClearGold는 125 + level*20, side 1.25, boss 1.35. 장비 가격 체계는 유지한다.
+- 네로의 silence/firecurse/iceprison은 ATK 기반 physical 속성 기술로 전환.
+- 카일 iceblade 1.35, stormblade 1.45; 용병 분기는 ATK 비율+고정/CRIT 강화.
+- 브란 2차 MOVE +1, 리아 windlance MP16/power1.80, 루나 heal MP9.
+- purify/miracle/waterwave 정화는 HARMFUL_STATUS만 제거하여 이로운 버프를 보존한다.
+- light↔dark는 상호 1.25배. 도감 elementDetails/monsterAdvice도 동일 로직으로 설명한다.
+- 빙결 골렘 magic immunity, 바람 정령 physical immunity. spider 모델 27번은 물안개 독거미로 명칭 정합화.
+- HERO_LEVEL_CAP 40. 구버전 save schema v1 호환을 위해 LEGACY_HERO_LEVEL_CAP=50까지 검증 후 normalizeSave에서 40으로 정규화한다.
+- 도감/도움말/새게임 설명/버전 문자열을 실제 로직과 동기화한다.
+
+
+## v0.7.17 — 네로 전용 MP 성장
+- 네로는 속성/상태이상 물리 스킬 운용을 위해 물리 영웅 공용 MP cap에서 분리.
+- 기본/1차/2차 전직 최대 MP를 각각 24/30/36으로 설정.
+- 장비 maxMp 보너스는 별도 가산.
+- 다른 캐릭터 및 전투 밸런스는 v0.7.16 유지.

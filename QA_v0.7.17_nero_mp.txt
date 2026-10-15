@@ -1,0 +1,11 @@
+cnation TACTICS v0.7.17 QA — Nero MP
+
+[PASS] game.js JavaScript syntax: node --check
+[PASS] Nero HEROES base MP = 24
+[PASS] Nero physicalMaxMP base formula = 24 + classLevel * 6
+[PASS] Nero classLevel 0/1/2 => 24/30/36 MP before equipment bonuses
+[PASS] Equipment maxMp bonuses remain additive for Nero
+[PASS] Other physical heroes retain existing shared MP formula/cap
+[PASS] Runtime/UI/export version strings updated to v0.7.17
+[PASS] index cache-busting and service-worker cache key updated
+[PASS] v0.7.16 balance changes otherwise retained
