@@ -1,11 +1,16 @@
-# v0.7.19 개발 컨텍스트
+# v0.7.21
 
-- v0.7.18의 6명 상세 디자인/적 투구 및 v0.7.17 네로 MP 등 기존 기능 유지.
-- enemyFrontlineLimit 미변경.
-- enemyApproachPlan version14: 100% 선두, 다음2체 중간, 그 외 후방.
-- STORY .10/.05, NORMAL .20/.10, TACTICAL .30/.15.
-- 상대와 Manhattan 거리1 이하만 engaged100%. 병종/리더 예외 및 round 가속 없음.
-- 적 페이즈 내 순위 동결, 사망/생존 아군수 변화로 선두 인원이 변하면 재계산.
-- enemyMovementCredit: 기존 저장도 소수점만 추출. 행동 종료 후 실제 소비를 빼고 소수점만 이월.
-- 적 공격/AI 타겟 점수/능력치/몬스터 수는 미변경.
-- 접근률은 평지 칸수가 아닌 지형 이동 비용 예산에 곱함. 부족한 예산으로 숲을 건너지 못하는 경우에는 사용하지 못한 정수 예산을 버리므로 지연이 길어질 수 있음. 선두 승격/인접 대응으로 접근 가능.
+Base: v0.7.20. User-approved prologue-only balancing.
+- prologueRules/prologueEnemyStats/prologueMonsterTypes/clearPrologueRoutes helpers.
+- battleRules chapter0 overrides only. enemyCombatStats chapter0 early return for codex/runtime parity.
+- First tutorial 3 enemies NORMAL; others4. No special resistances or fast/status monsters.
+- can-counter elemental selection checks learned water attacks; fire-slime inserted only if available.
+- Final main battle leader is explicit prologueLeader; starts stationary and activates after two regular deaths, or adjacent defense.
+- enemyApproachPlan v15 invalidates saved older plans. Non-prologue rates remain v0.7.19.
+- Tutorial AI removes explicit mage preference and team coordination while preserving legal attacks.
+- clearPrologueRoutes gives height0 grass start zone and routes; remaining heights0/1.
+- refreshLegacyPrologueBattle rolls back retry resources before regenerating old active/defeat tutorial saves. Victory/rewarded snapshots untouched. New retry snapshot/resources established.
+- Models/MP/gear/affinities/potions/recovery unchanged.
+- Runtime diagnostic-only tests inject temporary APIs in HTTP response; not added to shipped source.
+
+Validation limits: synthetic normal combat simulation uses the real movement/range/estimate/AI functions, level1/no gear/no potions/basic and Fire only, stochastic hit/crit/damage. No burn or attack XP effects (conservative). It does not render action effects or represent all human choices. Actual browser attack/facing/enemy phase also tested.
