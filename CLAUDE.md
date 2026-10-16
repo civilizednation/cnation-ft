@@ -12,7 +12,7 @@ Mobile-first 3D turn-based tactics RPG (Korean). Static site: no build step, no 
 - `sw.js` — service worker, network-first, caches only the files in `CACHED_PATHS`.
 - `revisions.html` — public revision history, linked from the title screen.
 - `manifest.webmanifest`, `icon.png` — PWA.
-- `run.bat` — Windows local server launcher (Python http.server on :8080).
+- `bgm/` — optional music files, currently unused (`window.TACTICS_BGM` in index.html is empty; music is procedural).
 
 ## Revision management (required for every change)
 Version format `ver.MAJOR.MINOR.PATCH`: PATCH = fixes/tuning, MINOR = new features, MAJOR = big overhaul.
