@@ -1,8 +1,8 @@
-/* cnation TACTICS v0.7.21. Network-first updates; offline fallback. */
-const CACHE='cnation-tactics-v0.7.21-all-defeat';
+/* cnation TACTICS v0.7.23. Network-first updates; offline fallback. */
+const CACHE='cnation-tactics-v0.7.23-character-balance';
 const BASE=new URL('./',self.location.href).href;
-const ASSETS=['index.html','game.js?v=0.7.21-all-defeat'].map(p=>new URL(p,BASE).href);
-self.addEventListener('message',event=>{if(event.data==='TACTICS_VERSION')event.ports[0]?.postMessage('0.7.21');});
+const ASSETS=['index.html','game.js?v=0.7.23-character-balance'].map(p=>new URL(p,BASE).href);
+self.addEventListener('message',event=>{if(event.data==='TACTICS_VERSION')event.ports[0]?.postMessage('0.7.23');});
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('cnation-tactics-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
