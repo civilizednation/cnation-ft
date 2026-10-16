@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.1.2';
+const GAME_VERSION='1.1.3';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
