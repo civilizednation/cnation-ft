@@ -16,7 +16,7 @@ Mobile-first 3D turn-based tactics RPG (Korean). Static site: no build step, no 
   Track 1 plays on every non-battle screen; every battle picks one of 4–7 at random, never repeating the
   previous battle's track (`battleBgmTrack`, stored as `battle.bgmTrack`). Tracks are decoded at 32 kHz with
   Web Audio, kept in memory (`bgmBuffers`), and looped with a crossfade (`BgmFilePlayer`). Fallbacks:
-  `<audio>` loop, then procedural music (`TacticsSoundtrackEngine`). Volume: `save.settings.bgmVolume` (default .5).
+  `<audio>` loop, then procedural music (`TacticsSoundtrackEngine`). Volume: `save.settings.bgmVolume` (default .5); actual output gain is `bgmGain()` = setting × `BGM_OUTPUT_SCALE` (.5).
   sw.js caches bgm files cache-first.
 
 ## Revision management (required for every change)
