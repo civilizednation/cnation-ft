@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.1.1';
+const GAME_VERSION='1.1.2';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -488,7 +488,9 @@ function battleBgmTrack(){
  lastBattleBgm=battle.bgmTrack;try{localStorage.setItem(LAST_BATTLE_BGM_KEY,String(lastBattleBgm));}catch{}
  return battle.bgmTrack;
 }
-function bgmTrackFor(type){return type==='battle'||type==='boss'?battleBgmTrack():1;}
+// v1.1.2: every victory plays track 10 once. It is preloaded when a battle starts.
+const VICTORY_BGM_TRACK=10;
+function bgmTrackFor(type){return type==='battle'||type==='boss'?battleBgmTrack():type==='victory'?VICTORY_BGM_TRACK:1;}
 // Soundtrack files are decoded once and kept in memory for reuse: track 1 at startup,
 // each battle track the first time a battle needs it. Decoding at 32 kHz keeps all five
 // tracks at about 175 MB instead of about 260 MB at 48 kHz. Tracks loop with a short
@@ -515,14 +517,15 @@ function showLoading(promise){
 }
 function audibleRange(buffer){const threshold=.004,channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i)),loud=i=>channels.some(c=>Math.abs(c[i])>threshold);let start=0,end=buffer.length;while(start<end&&!loud(start))start++;while(end>start&&!loud(end-1))end--;return {start:start/buffer.sampleRate,end:end/buffer.sampleRate};}
 class BgmFilePlayer{
- constructor(ctx,buffer,volume){const range=audibleRange(buffer);this.ctx=ctx;this.buffer=buffer;this.volume=volume;this.offset=range.start;this.length=Math.max(1,range.end-range.start);this.fade=Math.min(1.2,this.length/4);this.out=ctx.createGain();this.out.gain.value=0;this.out.connect(ctx.destination);this.sources=new Set();this.timer=0;this.stopped=false;}
- start(){const t=this.ctx.currentTime+.05;this.out.gain.setValueAtTime(0,t);this.out.gain.linearRampToValueAtTime(this.volume,t+.6);this.schedule(t,true);}
+ constructor(ctx,buffer,volume,loop=true){const range=audibleRange(buffer);this.loop=loop;this.ctx=ctx;this.buffer=buffer;this.volume=volume;this.offset=range.start;this.length=Math.max(1,range.end-range.start);this.fade=Math.min(1.2,this.length/4);this.out=ctx.createGain();this.out.gain.value=0;this.out.connect(ctx.destination);this.sources=new Set();this.timer=0;this.stopped=false;}
+ start(){const t=this.ctx.currentTime+.05;this.out.gain.setValueAtTime(0,t);this.out.gain.linearRampToValueAtTime(this.volume,t+(this.loop?.6:.05));this.schedule(t,true);}
  schedule(t,first){
   if(this.stopped)return;
   const src=this.ctx.createBufferSource(),g=this.ctx.createGain(),f=this.fade,end=t+this.length,next=end-f;
   src.buffer=this.buffer;src.connect(g);g.connect(this.out);
-  g.gain.setValueAtTime(first?1:0,t);if(!first)g.gain.linearRampToValueAtTime(1,t+f);g.gain.setValueAtTime(1,next);g.gain.linearRampToValueAtTime(0,end);
+  g.gain.setValueAtTime(first?1:0,t);if(!first)g.gain.linearRampToValueAtTime(1,t+f);if(this.loop){g.gain.setValueAtTime(1,next);g.gain.linearRampToValueAtTime(0,end);}
   src.onended=()=>{this.sources.delete(src);src.disconnect();g.disconnect();};src.start(t,this.offset,this.length);this.sources.add(src);
+  if(!this.loop)return;
   this.timer=setTimeout(()=>this.schedule(next,false),Math.max(0,(next-this.ctx.currentTime-2)*1000));
  }
  setVolume(v){this.volume=v;if(this.stopped)return;const t=this.ctx.currentTime,gain=this.out.gain;gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(v,t+.2);}
@@ -532,16 +535,17 @@ function stopBgmPlayback(){bgmGeneration++;soundtrack?.stop();filePlayer?.stop()
 function syncBgm(){
  if(!playingBgm||!audioCtx||!save.settings.sound||document.hidden){stopBgmPlayback();return;}
  const id=bgmTrackFor(playingBgm),url=window.TACTICS_BGM?.[id]||window.TACTICS_BGM?.[playingBgm],key=url?'file:'+url:'web:'+id;
+ if(BATTLE_BGM_TRACKS.includes(id)){const victory=window.TACTICS_BGM?.[VICTORY_BGM_TRACK];if(victory&&!failedBgm.has(victory))loadBgm(victory).catch(()=>{});}
  if(activeBgmKey===key)return;
  stopBgmPlayback();const generation=bgmGeneration;activeBgmKey=key;bgmError='';
  const current=()=>activeBgmKey===key&&bgmGeneration===generation;
  const procedural=()=>{soundtrack??=new TacticsSoundtrackEngine(audioCtx);soundtrack.setVolume(.75*bgmGain());soundtrack.play(id).catch(e=>{if(current()){activeBgmKey='';bgmError=e.message;}});};
  // File playback: Web Audio (gapless loop) -> <audio> element loop -> procedural music.
  if(url){
-  const ctx=audioCtx,element=()=>{if(!current())return;bgm=new Audio(url);bgm.loop=true;bgm.volume=bgmGain();bgm.play().catch(e=>{if(!current())return;bgm=null;bgmError=e.message;procedural();});};
+  const ctx=audioCtx,element=()=>{if(!current())return;bgm=new Audio(url);bgm.loop=id!==VICTORY_BGM_TRACK;bgm.volume=bgmGain();bgm.play().catch(e=>{if(!current())return;bgm=null;bgmError=e.message;procedural();});};
   if(failedBgm.has(url)){element();return;}
-  const load=loadBgm(url);if(!loadedBgm.has(url))showLoading(load);
-  load.then(buffer=>{if(!current())return;filePlayer=new BgmFilePlayer(ctx,buffer,bgmGain());filePlayer.start();}).catch(element);return;}
+  const load=loadBgm(url);if(!loadedBgm.has(url)&&id!==VICTORY_BGM_TRACK)showLoading(load);
+  load.then(buffer=>{if(!current())return;filePlayer=new BgmFilePlayer(ctx,buffer,bgmGain(),id!==VICTORY_BGM_TRACK);filePlayer.start();}).catch(element);return;}
  procedural();
 }
 
