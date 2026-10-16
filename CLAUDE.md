@@ -2,6 +2,9 @@
 
 Mobile-first 3D turn-based tactics RPG (Korean). Static site: no build step, no server code.
 
+## Communication
+Always write every message to the user in Korean (한국어) — progress updates, questions, and summaries.
+
 ## Files
 - `index.html` — page shell, all base CSS, title screen markup, script tags (with `?v=` cache-busting).
 - `vendor/three-r170.js` — bundled three.js r170 + BufferGeometryUtils, exposes global `CNATION3D`. Do not edit.
