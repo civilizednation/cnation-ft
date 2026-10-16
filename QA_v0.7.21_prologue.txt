@@ -1,3 +1,10 @@
+v0.7.21 victory-condition patch verification
+- Static source audit: all STAGES/SIDE_MISSIONS goals are `defeat`.
+- Static source audit: `checkEnd()` victory branch is `!alive('enemy').length` only.
+- Boss generation remains keyed to `isBossStage(stage)` rather than `stage.goal`.
+- Final boss `c9s2` remains recognized as a boss stage.
+- Boss music and boss reward multiplier remain keyed to boss stage identity.
+
 v0.7.21 verification
 - node --check game.js passed.
 - 375 generated maps: 5 tutorial stages ×3 difficulties ×25 seeds. Enemy counts/species/HP/speed/terrain/leader activation validated.
