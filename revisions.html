@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#162c32">
+<title>Revision History · cnation TACTICS</title>
+<style>
+:root{color-scheme:dark;--bg:#0a171e;--card:#122830;--line:#ffffff1c;--ink:#e6eee6;--muted:#94aaa7;--gold:#e7bd70;--mint:#8fe5b4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))}
+main{max-width:680px;margin:0 auto}
+a{color:var(--gold)}
+.back{display:inline-block;padding:10px 0;text-decoration:none;font-weight:700}
+.eyebrow{font-size:11px;letter-spacing:2.4px;color:var(--muted)}
+h1{font-size:26px;margin:2px 0 4px;letter-spacing:1px}
+.lead{color:var(--muted);font-size:13px;margin:0 0 20px}
+.rev{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.rev h2{font-size:18px;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.rev h2 .date{font-size:12px;font-weight:400;color:var(--muted)}
+.rev h2 .tag{font-size:11px;font-weight:700;color:#10232a;background:var(--mint);border-radius:999px;padding:1px 8px}
+.rev h3{font-size:13px;color:var(--gold);margin:12px 0 2px}
+.rev ul{margin:4px 0;padding-left:20px}
+.rev li{margin:3px 0}
+details.rev summary{cursor:pointer;font-weight:700}
+.legacy li{font-size:13px}
+code{font-size:12px;background:#ffffff12;border-radius:4px;padding:1px 4px}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">← 게임으로 돌아가기</a>
+<div class="eyebrow">CNATION TACTICS · THE ARCA CHRONICLE</div>
+<h1>Revision History</h1>
+<p class="lead">버전 규칙: <b>ver.주.부.수</b> — 버그 수정·미세 조정은 마지막 숫자, 기능 추가는 가운데 숫자, 큰 개편은 첫 숫자를 올립니다. 최신 버전이 맨 위에 있습니다.</p>
+
+<section class="rev" id="v1.1.0">
+<h2>ver.1.1.0 <span class="date">2026-10-16</span> <span class="tag">현재</span></h2>
+<h3>추가</h3>
+<ul>
+<li>실제 배경음악 적용. 전투 외 모든 화면(타이틀·지도·야영지·승리/패배·엔딩 등)은 1번 곡 「Title Theme」.</li>
+<li>모든 전투(보스전 포함)는 4~7번 곡 중 하나를 무작위로 재생하고, 직전 전투와 같은 곡은 나오지 않습니다. 같은 전투를 이어하기로 다시 열면 같은 곡이 이어집니다.</li>
+<li>곡이 끝나면 앞뒤 무음 구간을 잘라내고 짧게 겹쳐 자연스럽게 처음부터 다시 연주합니다.</li>
+<li>1번 곡은 게임 첫 실행 시, 전투 곡은 처음 필요할 때 불러와 메모리에 보관하고 재사용합니다. 불러오는 동안 「게임 데이터를 불러오는 중입니다.」 안내를 표시합니다.</li>
+<li>설정에 「배경음악 볼륨」 추가 (끄기·25%·50%·75%·100%). 효과음이 잘 들리도록 기본값은 50%입니다.</li>
+<li>한 번 재생한 음악 파일은 오프라인에서도 재생되도록 저장됩니다.</li>
+</ul>
+<h3>참고</h3>
+<ul>
+<li>음악 파일(WebM/Opus)을 재생하지 못하는 오래된 브라우저(iOS 17.4 이전 등)에서는 기존처럼 게임이 직접 만든 음악이 나옵니다.</li>
+</ul>
+</section>
+
+<section class="rev" id="v1.0.1">
+<h2>ver.1.0.1 <span class="date">2026-10-16</span></h2>
+<h3>수정</h3>
+<ul>
+<li>상 난이도 6장(특히 보스전 「아르카 감시자」)에서 일부 지도(약 1.3%)가 적 배치 공간 부족으로 생성되지 않아 전투가 시작되지 않던 문제 수정. 공간이 부족할 때만 적 사이 간격을 한 칸씩 줄여 배치하며, 기존에 정상 생성되던 지도는 그대로입니다.</li>
+<li>오프라인 캐시(서비스 워커)가 게임 외의 페이지를 게임 화면 캐시로 덮어쓸 수 있던 문제 수정.</li>
+</ul>
+<h3>변경</h3>
+<ul>
+<li>타이틀 화면 하단에 <code>ver.1.0.1 (rev. history)</code> 표시. rev. history를 누르면 이 페이지가 열립니다.</li>
+<li>파일 구조 분리: 3D 라이브러리(three.js r170)를 <code>vendor/three-r170.js</code>로 분리하고 <code>game.js</code>에는 게임 코드만 남김. 게임 로직 변경 없음.</li>
+<li>개발용 문서 정리: QA 기록 24개, CHANGELOG.txt, DEVELOPMENT_CONTEXT.md, README.txt, run.bat 삭제. 요약은 아래 「1.0 이전 개발 기록」으로 옮김.</li>
+</ul>
+</section>
+
+<section class="rev" id="v1.0.0">
+<h2>ver.1.0.0 <span class="date">2026-10-16</span></h2>
+<ul>
+<li>정식 버전 지정. 개발 버전 v0.7.32와 동일한 내용입니다.</li>
+<li>스토리 모드(프롤로그~FINAL, 10챕터·53전투: 스토리 30·추가 15·보스 8), 미션 모드(챕터 선택), 3단계 난이도, 영웅 6명·스킬 43종·몬스터 30종·장비 파밍·백과사전·저장 슬롯 포함.</li>
+</ul>
+</section>
+
+<details class="rev legacy" id="pre-1.0">
+<summary>1.0 이전 개발 기록 (v0.6.61 ~ v0.7.32)</summary>
+<ul>
+<li><b>v0.7.32</b> 전투 하단 패널 압축(행동 5버튼 한 줄), 전장 화면 확대.</li>
+<li><b>v0.7.30~31</b> 강화 효과 6종 머리 위 아이콘·남은 턴 표시.</li>
+<li><b>v0.7.29</b> 물리/마법 이뮤니티 배율 정리(무속성 물리 35%, 속성 물리 60%, 마법 35%).</li>
+<li><b>v0.7.28</b> 개발용 커스텀·분석 메뉴 제거, 미션 30조합 진입 검증.</li>
+<li><b>v0.7.26</b> 백과사전 3D 미리보기 개선.</li>
+<li><b>v0.7.21</b> 승리 조건을 「적 전멸」로 통일, 프롤로그 입문 밸런스.</li>
+<li><b>v0.7.19</b> 적 접근 속도(이동 예산·소수점 이월) 조정.</li>
+<li><b>v0.7.18</b> 영웅·인간형 적 3D 모델 디자인 개선.</li>
+<li><b>v0.7.17</b> 네로 MP 공식 조정.</li>
+<li><b>v0.7.15~16</b> 레벨 상한 40, 고레벨 EXP 증가, 신규 동료 합류 레벨 계산.</li>
+<li><b>v0.7.10~12</b> 도감·전투 공통 능력치 공식, 행동당 EXP 상한, 재도전 EXP 10%.</li>
+<li><b>v0.7.9</b> 원거리 공격 방향 각도(0~180°) 보너스, 공격 예상창 상세화.</li>
+<li><b>v0.7.8</b> 적 AI 역할(선두·원거리·측면·마법) 및 속성 예고.</li>
+<li><b>v0.7.7</b> 몬스터 피해량 +30%.</li>
+<li><b>v0.7.5~6</b> 챕터 3 이후 난이도, 적 HP +30%, 접근 계획.</li>
+<li><b>v0.7.4</b> 장비 추천 기능.</li>
+<li><b>v0.7.3</b> 난이도 3단계 정비(하 난이도 카일 1회 구조 등).</li>
+<li><b>v0.7.2</b> 모드별 수동 저장 슬롯(IndexedDB), 파일 내보내기.</li>
+<li><b>v0.7.0~1</b> 스토리/미션 모드 분리, 속성 파티클 시인성.</li>
+<li><b>v0.6.61</b> 불·물·바람 속성 몬스터와 속성 스킬 13종, 3D 속성 파티클.</li>
+</ul>
+</details>
+</main>
+</body>
+</html>
