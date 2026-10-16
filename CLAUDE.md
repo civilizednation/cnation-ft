@@ -15,6 +15,11 @@ Always write every message to the user in Korean (한국어) — progress update
 - `sw.js` — service worker, network-first, caches only the files in `CACHED_PATHS`.
 - `revisions.html` — public revision history, linked from the title screen.
 - `manifest.webmanifest`, `icon.png` — PWA.
+- `fonts/` — `stylish.woff2` (display: titles, headings, buttons, `.unitname`) and `gowun-dodum.woff2` (body),
+  SIL OFL (`fonts/OFL-*.txt`). Subset to the characters used in index.html/game.js/revisions.html.
+  **After adding or changing any in-game text, run `python3 tools/subset-fonts.py`** (needs `pip install fonttools brotli`)
+  and bump `?v=` on the font URLs (index.html, revisions.html, sw.js) — otherwise new characters fall back to the system font.
+  `size-adjust` in @font-face matches the old system-font Hangul height (Stylish 118%, Gowun Dodum 104%).
 - `bgm/` — soundtrack (WebM/Opus), mapped in `window.TACTICS_BGM` in index.html (key = track id).
   Track 1 plays on every non-battle screen except victory; every victory plays track 10 once (no loop,
   preloaded when a battle track starts); every battle picks one of 4–7 at random, never repeating the
