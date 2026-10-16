@@ -20,10 +20,10 @@ echo See README.txt for details.
 pause
 exit /b 1
 :launch
-echo Starting cnation TACTICS v0.6.12...
+echo Starting cnation TACTICS v1.0.1...
 echo Keep this window open while playing.
 echo Close this window or press Ctrl+C to stop the server.
-%PYTHON_CMD% -c "import http.server,threading,webbrowser,sys; port=int(sys.argv[1]); server=http.server.ThreadingHTTPServer(('127.0.0.1',port),http.server.SimpleHTTPRequestHandler); url='http://localhost:'+str(port)+'/'; print('cnation TACTICS v0.6.12 - '+url,flush=True); threading.Timer(0.8,lambda:webbrowser.open(url)).start(); server.serve_forever()" %GAME_PORT%
+%PYTHON_CMD% -c "import http.server,threading,webbrowser,sys; port=int(sys.argv[1]); server=http.server.ThreadingHTTPServer(('127.0.0.1',port),http.server.SimpleHTTPRequestHandler); url='http://localhost:'+str(port)+'/'; print('cnation TACTICS v1.0.1 - '+url,flush=True); threading.Timer(0.8,lambda:webbrowser.open(url)).start(); server.serve_forever()" %GAME_PORT%
 if not errorlevel 1 exit /b 0
 echo.
 echo Server stopped. If port 8080 is occupied, close the other local server.
