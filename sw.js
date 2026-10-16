@@ -1,5 +1,5 @@
 /* cnation TACTICS. Network-first updates; offline fallback. Version history: revisions.html */
-const VERSION='1.1.1';
+const VERSION='1.1.2';
 const CACHE='cnation-tactics-v'+VERSION;
 const BASE=new URL('./',self.location.href).href;
 const ASSETS=['index.html','vendor/three-r170.js?v=r170','game.js?v='+VERSION].map(p=>new URL(p,BASE).href);
