@@ -9,4 +9,4 @@ cnation 파랜드 택틱스 (명작 턴제 게임) · **cnation TACTICS · 아�
 ## 버전
 현재 버전과 변경 내역은 [revisions.html](revisions.html) (타이틀 화면 하단 `rev. history` 링크)에서 확인할 수 있습니다.
 
-`bgm/` 폴더의 음악 파일은 ver 1.1.0에서 실제 배경음악으로 적용할 예정입니다 (현재는 코드로 생성한 음악 사용).
+배경음악은 `bgm/` 폴더의 파일을 사용합니다 (`index.html`의 `window.TACTICS_BGM`에서 곡 번호별 경로 지정).

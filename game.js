@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.0.1';
+const GAME_VERSION='1.1.0';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -273,7 +273,7 @@ function validUnitExtras(u){return typeof u.name==='string'&&/^[가-힣A-Za-z0-9
 const MISSION_SAVE_KEY='cnation-tactics-mission-save-v1';
 let missionMode=false,missionBackup=null,missionSelection={chapter:0,difficulty:'normal'};
 function activeSaveKey(){return missionMode?MISSION_SAVE_KEY:SAVE_KEY;}
-function fresh(difficulty='normal'){return {version:1,inventory:[],lootSeq:0,difficulty,completed:[],skippedSides:[],gold:300,potions:0,consumables:{hpSmall:5,hpMedium:2,hpLarge:2,mpSmall:1,mpLarge:0},party:HEROES.map(h=>({id:h.id,level:1,xp:0,classLevel:0,branch:0,equip:[0,0,0],equipped:[null,null,null,null]})),settings:{speed:1,sound:true,quality:1},battle:null,retry:null,chapter:0};}
+function fresh(difficulty='normal'){return {version:1,inventory:[],lootSeq:0,difficulty,completed:[],skippedSides:[],gold:300,potions:0,consumables:{hpSmall:5,hpMedium:2,hpLarge:2,mpSmall:1,mpLarge:0},party:HEROES.map(h=>({id:h.id,level:1,xp:0,classLevel:0,branch:0,equip:[0,0,0],equipped:[null,null,null,null]})),settings:{speed:1,sound:true,quality:1,bgmVolume:.5},battle:null,retry:null,chapter:0};}
 let save=fresh(),battle=null,selected=null,mode='move',skill=null,preview=null,busy=false,isTitle=true,currentChapter=0,toastTimer,modalBack=null;
 const initialStoryRecord=readStorySave();if(initialStoryRecord.kind==='valid')save=initialStoryRecord.data;
 function validConsumables(v){return v&&Object.keys(CONSUMABLES).every(k=>Number.isSafeInteger(v[k])&&v[k]>=0&&v[k]<=9999);}
@@ -473,19 +473,74 @@ class TacticsSoundtrackEngine {
 }
 
 let soundtrack=null,activeBgmKey='',bgmError='',bgmGeneration=0;
-function bgmTrackFor(type,stage=getStage()){
- if(type==='battle')return stage?.id==='c9s2'?11:(stage?.chapter??0)<=2?4:(stage?.chapter??0)<=6?5:6;
- if(type==='boss')return stage?.id==='c9s2'?11:7;
- return {title:1,world:2,town:3,sad:8,mystery:9,victory:10,ending:12}[type]||1;
+// v1.1.0: every battle plays one of BATTLE_BGM_TRACKS at random, never the same
+// track as the previous battle. Every other screen plays track 1.
+const BATTLE_BGM_TRACKS=[4,5,6,7],LAST_BATTLE_BGM_KEY='cnation-tactics-last-battle-bgm',BGM_VOLUMES=[0,.25,.5,.75,1];
+const bgmVolume=()=>BGM_VOLUMES.includes(save.settings.bgmVolume)?save.settings.bgmVolume:.5;
+let lastBattleBgm=(()=>{try{return Number(localStorage.getItem(LAST_BATTLE_BGM_KEY))||0;}catch{return 0;}})();
+function battleBgmTrack(){
+ if(!battle)return BATTLE_BGM_TRACKS[0];
+ if(BATTLE_BGM_TRACKS.includes(battle.bgmTrack))return battle.bgmTrack;
+ const choices=BATTLE_BGM_TRACKS.filter(id=>id!==lastBattleBgm);
+ battle.bgmTrack=choices[Math.floor(Math.random()*choices.length)];
+ lastBattleBgm=battle.bgmTrack;try{localStorage.setItem(LAST_BATTLE_BGM_KEY,String(lastBattleBgm));}catch{}
+ return battle.bgmTrack;
 }
-function stopBgmPlayback(){bgmGeneration++;soundtrack?.stop();bgm?.pause();bgm=null;activeBgmKey='';}
+function bgmTrackFor(type){return type==='battle'||type==='boss'?battleBgmTrack():1;}
+// Soundtrack files are decoded once and kept in memory for reuse: track 1 at startup,
+// each battle track the first time a battle needs it. Decoding at 32 kHz keeps all five
+// tracks at about 175 MB instead of about 260 MB at 48 kHz. Tracks loop with a short
+// crossfade over their trimmed audible range, so a track restarts seamlessly.
+const BGM_DECODE_RATE=32000,bgmBuffers=new Map(),loadedBgm=new Set(),failedBgm=new Set();
+let filePlayer=null,loadingCount=0;
+function decodeBgm(data){
+ const Offline=window.OfflineAudioContext||window.webkitOfflineAudioContext;let ctx=null;
+ try{if(Offline)ctx=new Offline(2,1,BGM_DECODE_RATE);}catch{}ctx??=audioCtx;
+ if(!ctx)return Promise.reject(Error('Web Audio unavailable'));
+ return new Promise((resolve,reject)=>{const p=ctx.decodeAudioData(data,resolve,reject);p?.catch?.(reject);});
+}
+function loadBgm(url){
+ if(!bgmBuffers.has(url))bgmBuffers.set(url,fetch(url).then(r=>{if(!r.ok)throw Error('BGM '+r.status);return r.arrayBuffer();}).then(decodeBgm).then(buffer=>{loadedBgm.add(url);return buffer;},e=>{bgmBuffers.delete(url);failedBgm.add(url);throw e;}));
+ return bgmBuffers.get(url);
+}
+function showLoading(promise){
+ let el=$('#loadingNotice');
+ if(!el){el=document.createElement('div');el.id='loadingNotice';el.setAttribute('role','status');el.innerHTML='<div><span class="loading-spinner" aria-hidden="true"></span>게임 데이터를 불러오는 중입니다.</div>';$('#app').append(el);}
+ loadingCount++;el.hidden=false;
+ const done=()=>{loadingCount=Math.max(0,loadingCount-1);if(!loadingCount)el.hidden=true;};
+ Promise.race([promise,new Promise(r=>setTimeout(r,15000))]).then(done,done);
+ return promise;
+}
+function audibleRange(buffer){const threshold=.004,channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i)),loud=i=>channels.some(c=>Math.abs(c[i])>threshold);let start=0,end=buffer.length;while(start<end&&!loud(start))start++;while(end>start&&!loud(end-1))end--;return {start:start/buffer.sampleRate,end:end/buffer.sampleRate};}
+class BgmFilePlayer{
+ constructor(ctx,buffer,volume){const range=audibleRange(buffer);this.ctx=ctx;this.buffer=buffer;this.volume=volume;this.offset=range.start;this.length=Math.max(1,range.end-range.start);this.fade=Math.min(1.2,this.length/4);this.out=ctx.createGain();this.out.gain.value=0;this.out.connect(ctx.destination);this.sources=new Set();this.timer=0;this.stopped=false;}
+ start(){const t=this.ctx.currentTime+.05;this.out.gain.setValueAtTime(0,t);this.out.gain.linearRampToValueAtTime(this.volume,t+.6);this.schedule(t,true);}
+ schedule(t,first){
+  if(this.stopped)return;
+  const src=this.ctx.createBufferSource(),g=this.ctx.createGain(),f=this.fade,end=t+this.length,next=end-f;
+  src.buffer=this.buffer;src.connect(g);g.connect(this.out);
+  g.gain.setValueAtTime(first?1:0,t);if(!first)g.gain.linearRampToValueAtTime(1,t+f);g.gain.setValueAtTime(1,next);g.gain.linearRampToValueAtTime(0,end);
+  src.onended=()=>{this.sources.delete(src);src.disconnect();g.disconnect();};src.start(t,this.offset,this.length);this.sources.add(src);
+  this.timer=setTimeout(()=>this.schedule(next,false),Math.max(0,(next-this.ctx.currentTime-2)*1000));
+ }
+ setVolume(v){this.volume=v;if(this.stopped)return;const t=this.ctx.currentTime,gain=this.out.gain;gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(v,t+.2);}
+ stop(){this.stopped=true;clearTimeout(this.timer);const t=this.ctx.currentTime,gain=this.out.gain,sources=[...this.sources];gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(0,t+.4);setTimeout(()=>{for(const src of sources)try{src.stop();}catch{}this.out.disconnect();},500);}
+}
+function stopBgmPlayback(){bgmGeneration++;soundtrack?.stop();filePlayer?.stop();filePlayer=null;bgm?.pause();bgm=null;activeBgmKey='';}
 function syncBgm(){
  if(!playingBgm||!audioCtx||!save.settings.sound||document.hidden){stopBgmPlayback();return;}
  const id=bgmTrackFor(playingBgm),url=window.TACTICS_BGM?.[id]||window.TACTICS_BGM?.[playingBgm],key=url?'file:'+url:'web:'+id;
  if(activeBgmKey===key)return;
  stopBgmPlayback();const generation=bgmGeneration;activeBgmKey=key;bgmError='';
- if(url){bgm=new Audio(url);bgm.loop=id!==10;bgm.volume=.15;bgm.play().catch(e=>{if(activeBgmKey===key&&bgmGeneration===generation){activeBgmKey='';bgmError=e.message;}});return;}
- soundtrack??=new TacticsSoundtrackEngine(audioCtx);soundtrack.setVolume(.375);soundtrack.play(id).catch(e=>{if(activeBgmKey===key&&bgmGeneration===generation){activeBgmKey='';bgmError=e.message;}});
+ const current=()=>activeBgmKey===key&&bgmGeneration===generation;
+ const procedural=()=>{soundtrack??=new TacticsSoundtrackEngine(audioCtx);soundtrack.setVolume(.75*bgmVolume());soundtrack.play(id).catch(e=>{if(current()){activeBgmKey='';bgmError=e.message;}});};
+ // File playback: Web Audio (gapless loop) -> <audio> element loop -> procedural music.
+ if(url){
+  const ctx=audioCtx,element=()=>{if(!current())return;bgm=new Audio(url);bgm.loop=true;bgm.volume=bgmVolume();bgm.play().catch(e=>{if(!current())return;bgm=null;bgmError=e.message;procedural();});};
+  if(failedBgm.has(url)){element();return;}
+  const load=loadBgm(url);if(!loadedBgm.has(url))showLoading(load);
+  load.then(buffer=>{if(!current())return;filePlayer=new BgmFilePlayer(ctx,buffer,bgmVolume());filePlayer.start();}).catch(element);return;}
+ procedural();
 }
 
 function unlockAudio(){if(!audioCtx)try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch{}audioCtx?.resume().then(()=>syncBgm()).catch(()=>{});}
@@ -1889,7 +1944,7 @@ function returnToTitle(){
  battle=makeBattle(STAGES[0]);buildScene();refreshUI();refreshTitleSaveState();playBgm('title');
 }
 function showMenu(){if(busy){toast('행동이 끝난 후 메뉴를 열어 주세요.');return;}if(isTitle){showSettings(()=>{closeSheet();});return;}showSheet('여정 메뉴',`<button class="choice" id="menuTitle">타이틀 화면으로</button><button class="choice" id="menuCodex">백과사전 · 전체 공개</button><button class="choice" id="menuBag">장비 보관함</button><button class="choice" id="menuWorld">월드맵 · 야영지</button><h3>회복약 · 선택한 아군에게 사용</h3>${Object.entries(CONSUMABLES).map(([id,v])=>`<button class="choice" data-use-consumable="${id}" ${!canControl()||unit()?.acted||!save.consumables[id]?'disabled':''}>${v.name} <strong>${save.consumables[id]}개</strong><small>최대 ${v.stat.toUpperCase()} ${Math.round(v.ratio*100)}% 회복 · 행동 종료</small></button>`).join('')}<button class="choice" id="menuLog">전투 기록</button><button class="choice" id="menuSave">💾 저장 / 불러오기</button><button class="choice" id="menuSettings">설정</button><button class="choice" id="menuHelp">플레이 방법</button>${battle&&['player','enemy'].includes(battle.phase)?'<button class="choice" id="menuRetreat">전투 철수<small>진행 중인 전투는 초기화됩니다.</small></button>':''}`,()=>{$('#menuTitle').onclick=returnToTitle;$('#menuCodex').onclick=()=>showEncyclopedia('overview',showMenu);$('#menuBag').onclick=()=>showInventory(showMenu);$('#menuWorld').onclick=()=>showWorld(getStage()?.chapter||0);$('#sheet').querySelectorAll('[data-use-consumable]').forEach(b=>b.onclick=()=>useConsumable(b.dataset.useConsumable));$('#menuLog').onclick=()=>showSheet('전투 기록',`<div class="battlelog">${(battle?.log||['아직 전투 기록이 없습니다.']).slice().reverse().map(l=>`<div>${escapeHTML(l)}</div>`).join('')}</div>`,()=>{},{back:showMenu});$('#menuSave').onclick=()=>showSaveManager(showMenu);$('#menuSettings').onclick=()=>showSettings(showMenu);$('#menuHelp').onclick=()=>showHelp(showMenu);$('#menuRetreat')?.addEventListener('click',()=>showSheet('전투에서 철수할까요?',`<p>전투 시작 전 파티와 회복약 상태로 돌아갑니다.</p><button class="primary" id="doRetreat">철수</button><button class="secondary" id="cancelRetreat">계속 전투</button>`,()=>{$('#doRetreat').onclick=()=>{restoreRetryProgress();battle=null;save.retry=null;persist();showWorld();};$('#cancelRetreat').onclick=closeSheet;}));});}
-function showSettings(back=closeSheet){showSheet('설정 · 저장',`${isTitle?'<button class="choice" id="settingsTitle">타이틀 화면으로</button>':''}<div class="settings-row"><span>게임 속도</span><select id="setSpeed" aria-label="게임 속도">${[1,1.5,2].map(v=>`<option value="${v}" ${save.settings.speed===v?'selected':''}>×${v}</option>`).join('')}</select></div><div class="settings-row"><span>효과음 · BGM</span><button id="setSound">${save.settings.sound?'켜짐':'꺼짐'}</button></div><div class="settings-row"><span>화면 품질</span><select id="setQuality" aria-label="화면 품질"><option value="1" ${save.settings.quality===1?'selected':''}>표준</option><option value="0" ${save.settings.quality===0?'selected':''}>절전</option></select></div><div class="settings-row"><span>난이도</span><select id="setDifficulty" aria-label="난이도" ${battle&&['player','enemy'].includes(battle.phase)&&!isTitle?'disabled':''}>${['story','normal','tactical'].map(v=>`<option ${save.difficulty===v?'selected':''}>${v}</option>`).join('')}</select></div><h3>게임 저장</h3><p>자동 저장과 수동 저장 슬롯 3개를 기기에 보관합니다. 장기 보관용 JSON 파일 내보내기도 지원합니다.</p><button class="primary" id="openSaveManager">저장 / 불러오기 · 슬롯 3개</button><button class="secondary" id="settingsHelp">플레이 방법</button><p class="footnote">v0.7.32 · 임시 Web Audio BGM · 음악 기본 볼륨의 50% · 효과음 자체 생성<br>인터넷에 연결한 상태로 한 번 실행한 뒤 홈 화면에 추가하세요. 오프라인 데이터는 브라우저가 삭제할 수 있습니다.</p>`,()=>{$('#settingsTitle')?.addEventListener('click',returnToTitle);$('#setSpeed').onchange=e=>{save.settings.speed=+e.target.value;persistSettings();};$('#setSound').onclick=()=>{toggleSound();showSettings(back);};$('#setQuality').onchange=e=>{save.settings.quality=+e.target.value;renderer.setPixelRatio(Math.min(devicePixelRatio,save.settings.quality===0?1:1.75));resize();persistSettings();};$('#setDifficulty').onchange=e=>{save.difficulty=e.target.value;persistSettings();};$('#openSaveManager').onclick=()=>showSaveManager(()=>showSettings(back));$('#settingsHelp').onclick=()=>showHelp(()=>showSettings(back));},{back});}
+function showSettings(back=closeSheet){showSheet('설정 · 저장',`${isTitle?'<button class="choice" id="settingsTitle">타이틀 화면으로</button>':''}<div class="settings-row"><span>게임 속도</span><select id="setSpeed" aria-label="게임 속도">${[1,1.5,2].map(v=>`<option value="${v}" ${save.settings.speed===v?'selected':''}>×${v}</option>`).join('')}</select></div><div class="settings-row"><span>효과음 · BGM</span><button id="setSound">${save.settings.sound?'켜짐':'꺼짐'}</button></div><div class="settings-row"><span>배경음악 볼륨</span><select id="setBgmVolume" aria-label="배경음악 볼륨">${BGM_VOLUMES.map(v=>`<option value="${v}" ${bgmVolume()===v?'selected':''}>${v?Math.round(v*100)+'%':'끄기'}</option>`).join('')}</select></div><div class="settings-row"><span>화면 품질</span><select id="setQuality" aria-label="화면 품질"><option value="1" ${save.settings.quality===1?'selected':''}>표준</option><option value="0" ${save.settings.quality===0?'selected':''}>절전</option></select></div><div class="settings-row"><span>난이도</span><select id="setDifficulty" aria-label="난이도" ${battle&&['player','enemy'].includes(battle.phase)&&!isTitle?'disabled':''}>${['story','normal','tactical'].map(v=>`<option ${save.difficulty===v?'selected':''}>${v}</option>`).join('')}</select></div><h3>게임 저장</h3><p>자동 저장과 수동 저장 슬롯 3개를 기기에 보관합니다. 장기 보관용 JSON 파일 내보내기도 지원합니다.</p><button class="primary" id="openSaveManager">저장 / 불러오기 · 슬롯 3개</button><button class="secondary" id="settingsHelp">플레이 방법</button><p class="footnote">ver.${GAME_VERSION} · 배경음악 기본 볼륨 50% · 효과음 자체 생성<br>인터넷에 연결한 상태로 한 번 실행한 뒤 홈 화면에 추가하세요. 오프라인 데이터는 브라우저가 삭제할 수 있습니다.</p>`,()=>{$('#settingsTitle')?.addEventListener('click',returnToTitle);$('#setSpeed').onchange=e=>{save.settings.speed=+e.target.value;persistSettings();};$('#setSound').onclick=()=>{toggleSound();showSettings(back);};$('#setBgmVolume').onchange=e=>{save.settings.bgmVolume=+e.target.value;filePlayer?.setVolume(bgmVolume());soundtrack?.setVolume(.75*bgmVolume());if(bgm)bgm.volume=bgmVolume();persistSettings();};$('#setQuality').onchange=e=>{save.settings.quality=+e.target.value;renderer.setPixelRatio(Math.min(devicePixelRatio,save.settings.quality===0?1:1.75));resize();persistSettings();};$('#setDifficulty').onchange=e=>{save.difficulty=e.target.value;persistSettings();};$('#openSaveManager').onclick=()=>showSaveManager(()=>showSettings(back));$('#settingsHelp').onclick=()=>showHelp(()=>showSettings(back));},{back});}
 function persistSettings(){if(missionMode){persist();return;}if(isTitle&&hasSave()){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));s.settings=save.settings;s.difficulty=save.difficulty;localStorage.setItem(SAVE_KEY,JSON.stringify(s));}catch{}}else persist();}
 function toggleSound(){save.settings.sound=!save.settings.sound;$('#sound').textContent=save.settings.sound?'♪':'♩';if(save.settings.sound){unlockAudio();sfx();}else stopBgmPlayback();persistSettings();}
 function showHelp(back=closeSheet){showSheet('플레이 방법',`<h3>한 턴에 이동 한 번, 행동 한 번</h3><p>아군을 선택하면 파란 이동 범위가 나타납니다. 목적지를 한 번 탭해 경로를 확인하고, 같은 칸을 다시 탭하거나 확정 버튼을 눌러 이동하세요.</p><p>공격 또는 스킬을 누른 뒤 대상을 탭하면 예상 피해가 나타납니다. 다시 탭해 확정합니다. 제자리에서 공격·스킬을 먼저 쓰면 그 뒤 한 번 이동할 수 있습니다. 회복약·대기는 이동까지 마칩니다.</p><p>공격·스킬과 남은 이동 후 대기를 누르면 캐릭터 주변의 네 화살표로 마지막 방향을 한 번 정합니다. ‘현재 방향 유지’를 누르면 지금 방향으로 확정합니다. 방향 선택은 추가 이동·행동을 소모하지 않습니다. 공격·스킬·이동 직후에는 방향을 묻지 않습니다.</p><h3>전장을 읽어 보세요</h3><p>숲·잡초·모래 이동 비용 2, 늪 3, 물은 통과할 수 없습니다. 높이 차가 JUMP를 넘으면 이동할 수 없습니다. 높은 곳과 적의 옆·뒤에서 공격하면 피해가 커집니다. 카일이 쓰러지면 패배합니다.</p><p>🔥 불·💧 물·🪽 바람 속성 공격은 💧 물→🔥 불→🪽 바람→💧 물 순으로 유리합니다. 속성 공격 약점 125%, 내성 75%, 무속성 공격 100%입니다. 냉기는 물로 취급합니다. 골렘 계열은 마법 피해 35% 적용 (65% 감소), 유령 계열은 무속성 물리 피해 35% 적용 (65% 감소)입니다. 화염검처럼 속성이 붙은 물리 공격은 유령에게 피해 60% 적용 (40% 감소)입니다. 속성 상성은 별도로 곱하며 화상·독의 최대 HP 비례 지속 피해에는 이뮤니티 감소를 적용하지 않습니다. 독·화상은 지속 피해, 빙결은 이동 감소, 침묵은 스킬 제한, 수면·기절은 행동 제한입니다.</p><h3>난이도 안내</h3><p>하(STORY): 중 난이도 대비 적 HP 80%·공격력 72%·방어력 90%, 적 -1명, 카일이 쓰러지면 전투당 1회 HP 40%로 긴급 구조되고 2페이즈 방어 강화가 적용됩니다. 보스 위험 공격 예고도 자세히 표시됩니다.<br>중(NORMAL): 기준 능력치 100%, 기본 AI 및 보스 패턴.<br>상(TACTICAL): 중 난이도 대비 적 HP 115%·공격력 120%·방어력 112%, 적 +1명. 적이 지원·체력이 낮은 아군과 속성 약점을 노리고 보스가 밀집 진형을 겨냥합니다. 보스의 소환수도 강화됩니다.</p><h3>시점 조작</h3><p>한 손가락 드래그로 이동, 두 손가락으로 확대·축소합니다. 빠르게 좌우로 쓸거나 회전 버튼을 눌러 90도 회전하세요. ⌖ 버튼은 원래 시점으로 돌아갑니다.</p><h3>성장과 모험</h3><p>프롤로그와 8개 챕터, 최종장에 스토리 전투 30개, 선택 임무 15개, 별도 보스전 8개가 있습니다. 선택 임무는 건너뛰어도 됩니다. 클리어한 전투는 다시 도전할 수 있습니다.</p><p>기본 스킬은 Lv.1·4·8·14·20에 열리고 신규 속성 스킬은 개별 레벨에 열립니다. Lv.10·20에는 파티 관리에서 전직하세요. 승리 시 손실 HP의 50%를 회복하며 다음 전투에 이어집니다. 챕터 마지막 전투 승리 시 전원 HP가 모두 회복됩니다. 쓰러진 동료도 일반 승리 후 HP50%로 복귀하고 MP는 매 전투 시작에 모두 회복됩니다. 회복약은 체력 소·중·대와 마력 소·대로 나뉘며 전투 메뉴에서 사용합니다.</p><h3>홈 화면 · 오프라인</h3><p>iPhone은 Safari의 공유 메뉴에서 ‘홈 화면에 추가’, Android는 Chrome 메뉴에서 앱 설치를 선택하세요. HTTPS 주소에서 첫 실행이 완료되면 기본 파일을 오프라인으로 사용할 수 있습니다.</p>`,()=>{},{back});}
@@ -1970,6 +2025,8 @@ playBgm('title');
 // Public, read-only diagnostic state. Useful for reproducing battle reports.
 window.TACTICS={version:GAME_VERSION,getState:()=>copy({stage:battle?.stageId,phase:battle?.phase,round:battle?.round,mapSeed:battle?.mapSeed,mapRules:battle?.mapRules,selected,mode,busy,isTitle,activeSpell,activeProjectile,criticalShot,visualSlow,pendingFacing:battle?.pendingFacing,statusVisuals:[...statusModels.keys()],inspectedEnemy,inspectedItem,lastHitReport,units:battle?.units,tiles:battle?.tiles,pickups:battle?.pickups,completed:save.completed,missionMode,missionChapter:missionMode?save.missionChapter:null,missionCleared:!!save.missionCleared,drawCalls:renderer.info.render.calls}),getCatalog:()=>({chapters:CHAPTERS.length,stages:STAGES.length,heroes:HEROES.length,skills:Object.keys(SKILLS).length}),tileScreen:(x,z)=>project(toWorld(tile(x,z)).add(new THREE.Vector3(0,.1,0)))};
 battle=makeBattle(STAGES[0]);selected='kyle';buildScene();refreshUI();$('#sound').textContent=save.settings.sound?'♪':'♩';window.TACTICS_READY=true;
+// Track 1 (title and every non-battle screen) is loaded once at startup.
+if(window.TACTICS_BGM?.[1])showLoading(loadBgm(window.TACTICS_BGM[1]).catch(()=>{}));
 
 if(document.modelContext?.registerTool){const life=new AbortController();try{Promise.resolve(document.modelContext.registerTool({name:'read_tactics_battle',title:'전투 상태 확인',description:'현재 전투의 턴, 캐릭터, 지형 상태를 확인합니다. 게임 상태는 바뀌지 않습니다.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('빈 객체를 입력하세요.');return window.TACTICS.getState();}},{signal:life.signal})).catch(()=>{});}catch{}window.addEventListener('pagehide',()=>life.abort(),{once:true});}
 })();

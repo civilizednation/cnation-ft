@@ -1,5 +1,5 @@
 /* cnation TACTICS. Network-first updates; offline fallback. Version history: revisions.html */
-const VERSION='1.0.1';
+const VERSION='1.1.0';
 const CACHE='cnation-tactics-v'+VERSION;
 const BASE=new URL('./',self.location.href).href;
 const ASSETS=['index.html','vendor/three-r170.js?v=r170','game.js?v='+VERSION].map(p=>new URL(p,BASE).href);
@@ -12,8 +12,12 @@ self.addEventListener('fetch',event=>{
  if(event.request.method!=='GET'||url.origin!==self.location.origin||!url.href.startsWith(BASE))return;
  // Only game assets are cached. Other pages (e.g. revisions.html) always come from the network,
  // so they can never replace the cached game page.
- const relative=url.pathname.slice(new URL(BASE).pathname.length);
- if(!CACHED_PATHS.includes(relative))return;
+ const relative=decodeURIComponent(url.pathname.slice(new URL(BASE).pathname.length));
+ // Soundtrack files are cached on first use. Range requests (from <audio>) bypass the cache:
+ // partial responses cannot be stored.
+ if(!CACHED_PATHS.includes(relative)&&!(relative.startsWith('bgm/')&&!event.request.headers.has('range')))return;
+ // Soundtrack files never change in place: serve from cache, otherwise download once without a timeout.
+ if(relative.startsWith('bgm/')){event.respondWith(caches.open(CACHE).then(async cache=>await cache.match(event.request)||fetch(event.request).then(async response=>{if(response.status===200)await cache.put(event.request,response.clone());return response;})));return;}
  const canonical=event.request.mode==='navigate'?new URL('index.html',BASE).href:event.request.url;
  event.respondWith((async()=>{
   const cache=await caches.open(CACHE);

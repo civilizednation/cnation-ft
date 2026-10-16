@@ -12,10 +12,12 @@ Mobile-first 3D turn-based tactics RPG (Korean). Static site: no build step, no 
 - `sw.js` — service worker, network-first, caches only the files in `CACHED_PATHS`.
 - `revisions.html` — public revision history, linked from the title screen.
 - `manifest.webmanifest`, `icon.png` — PWA.
-- `bgm/` — real soundtrack files, planned for ver 1.1.0 (KEEP). Currently unused: `window.TACTICS_BGM` in index.html is empty,
-  so music is procedural (`TacticsSoundtrackEngine`). File numbers match track ids in `bgmTrackFor()`
-  (1 title, 2 world, 3 town, 4/5/6 battle by chapter, 7 boss, 8 sad, 9 mystery, 10 victory, 11 final battle, 12 ending);
-  `TACTICS_BGM` accepts either the track id or the type name as key. Tracks without a file fall back to procedural music.
+- `bgm/` — soundtrack (WebM/Opus), mapped in `window.TACTICS_BGM` in index.html (key = track id).
+  Track 1 plays on every non-battle screen; every battle picks one of 4–7 at random, never repeating the
+  previous battle's track (`battleBgmTrack`, stored as `battle.bgmTrack`). Tracks are decoded at 32 kHz with
+  Web Audio, kept in memory (`bgmBuffers`), and looped with a crossfade (`BgmFilePlayer`). Fallbacks:
+  `<audio>` loop, then procedural music (`TacticsSoundtrackEngine`). Volume: `save.settings.bgmVolume` (default .5).
+  sw.js caches bgm files cache-first.
 
 ## Revision management (required for every change)
 Version format `ver.MAJOR.MINOR.PATCH`: PATCH = fixes/tuning, MINOR = new features, MAJOR = big overhaul.
