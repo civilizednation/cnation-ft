@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.2.3';
+const GAME_VERSION='1.3.0';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -693,14 +693,14 @@ const STAGE_TUNING={
  'c3s1':{story:[1.44,1.91,3,0],normal:[1.19,1.35,2,0],tactical:[1.05,1.06,0,0]},
  'c3s2':{story:[1.52,2.1,2,0],normal:[1.21,1.41,2,0],tactical:[1.15,1.19,0,0]},
  'c3q0':{story:[1.31,1.61,2,0],normal:[1.15,1.25,1,0],tactical:[1.07,1.16,0,0]},
- 'c3q1':{story:[1.57,2.1,3,0],normal:[1.34,1.61,1,0],tactical:[1.18,1.32,2,0]},
+ 'c3q1':{story:[1.57,2.1,3,0],normal:[1.54,2.09,1,0],tactical:[1.18,1.32,2,0]},
  'c3b':{story:[1.7,1.88,3,0],normal:[1.14,1.27,2,0],tactical:[1.08,1.13,1,0]},
  'c4s0':{story:[1.69,2.56,3,0],normal:[1.45,1.87,3,0],tactical:[1.32,1.6,1,0]},
  'c4s1':{story:[1.55,2.08,3,0],normal:[1.4,1.69,3,0],tactical:[1.34,1.62,1,0]},
  'c4s2':{story:[1.61,2.2,3,0],normal:[1.42,1.68,3,0],tactical:[1.29,1.53,1,0]},
  'c4q0':{story:[1.84,2.48,3,0],normal:[1.42,1.68,3,0],tactical:[1.28,1.46,2,0]},
  'c4q1':{story:[1.57,2.22,3,0],normal:[1.59,1.73,2,0],tactical:[1.22,1.33,0,0]},
- 'c4b':{story:[2.19,2.42,3,0],normal:[1.3,1.5,2,0],tactical:[1.15,1.31,3,0]},
+ 'c4b':{story:[1.86,2.06,3,0],normal:[1.3,1.5,2,0],tactical:[1.15,1.31,3,0]},
  'c5s0':{story:[1.46,2.0,3,0],normal:[1.32,1.58,2,0],tactical:[1.12,1.23,2,0]},
  'c5s1':{story:[1.55,2.18,2,0],normal:[1.28,1.53,1,0],tactical:[1.23,1.32,0,0]},
  'c5s2':{story:[1.41,1.88,3,0],normal:[1.34,1.58,1,0],tactical:[1.14,1.23,1,0]},
@@ -714,7 +714,7 @@ const STAGE_TUNING={
  'c7s0':{story:[1.41,1.87,3,0],normal:[1.29,1.5,1,0],tactical:[1.1,1.17,1,0]},
  'c7s1':{story:[1.44,1.93,3,0],normal:[1.3,1.49,0,0],tactical:[1.12,1.2,0,0]},
  'c7s2':{story:[1.33,1.7,3,0],normal:[1.19,1.39,2,0],tactical:[1.11,1.16,0,0]},
- 'c7q0':{story:[1.33,1.69,3,0],normal:[1.37,1.6,-1,0],tactical:[1.13,1.26,-1,0]},
+ 'c7q0':{story:[1.33,1.69,3,0],normal:[1.21,1.31,-1,0],tactical:[1.13,1.26,-1,0]},
  'c7b':{story:[1.43,1.97,3,0],normal:[1.13,1.18,0,0],tactical:[1.11,1.18,-1,0]},
  'c8s0':{story:[1.4,1.81,2,0],normal:[1.16,1.33,2,0],tactical:[1.06,1.1,0,0]},
  'c8s1':{story:[1.31,1.66,3,0],normal:[1.1,1.17,2,0],tactical:[1.04,1.04,0,0]},
