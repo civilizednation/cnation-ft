@@ -21,9 +21,12 @@ Always write every message to the user in Korean (한국어) — progress update
   and bump `?v=` on the font URLs (index.html, revisions.html, sw.js) — otherwise new characters fall back to the system font.
   `size-adjust` in @font-face matches the old system-font Hangul height (Stylish 118%, Gowun Dodum 104%).
 - `bgm/` — soundtrack (WebM/Opus), mapped in `window.TACTICS_BGM` in index.html (key = track id).
-  Track 1 plays on every non-battle screen except victory; every victory plays track 10 once (no loop,
-  preloaded when a battle track starts); every battle picks one of 4–7 at random, never repeating the
-  previous battle's track (`battleBgmTrack`, stored as `battle.bgmTrack`). Tracks are decoded at 32 kHz with
+  Track 1 plays on every non-battle screen except victory; every victory plays track 10 once (no loop);
+  every battle plays one of 4–7, never repeating the previous battle's track (`battleBgmTrack`, stored as
+  `battle.bgmTrack`). The next battle's track is chosen in advance (`upcomingBattleBgm`, persisted in
+  localStorage) and preloaded one file at a time (`preloadBgm`): track 1 then the next battle track at startup;
+  victory track then the following battle track whenever a battle track starts. A battle whose track is not
+  loaded yet shows the loading notice. Tracks are decoded at 32 kHz with
   Web Audio, kept in memory (`bgmBuffers`), and looped with a crossfade (`BgmFilePlayer`). Fallbacks:
   `<audio>` loop, then procedural music (`TacticsSoundtrackEngine`). Volume: `save.settings.bgmVolume` (default .5); actual output gain is `bgmGain()` = setting × `BGM_OUTPUT_SCALE` (.5).
   sw.js caches bgm files cache-first.

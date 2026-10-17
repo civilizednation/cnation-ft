@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.2.0';
+const GAME_VERSION='1.2.1';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -479,15 +479,35 @@ const BATTLE_BGM_TRACKS=[4,5,6,7],LAST_BATTLE_BGM_KEY='cnation-tactics-last-batt
 const bgmVolume=()=>BGM_VOLUMES.includes(save.settings.bgmVolume)?save.settings.bgmVolume:.5;
 // v1.1.1: actual output is half of the setting (the setting labels stay 25-100%).
 const BGM_OUTPUT_SCALE=.5,bgmGain=()=>bgmVolume()*BGM_OUTPUT_SCALE;
-let lastBattleBgm=(()=>{try{return Number(localStorage.getItem(LAST_BATTLE_BGM_KEY))||0;}catch{return 0;}})();
+// v1.2.1: the NEXT battle's track is chosen in advance (and remembered across launches)
+// so it can be preloaded before the battle starts: after track 1 at startup, and during
+// each battle together with the victory track.
+const NEXT_BATTLE_BGM_KEY='cnation-tactics-next-battle-bgm';
+const readStoredTrack=k=>{try{return Number(localStorage.getItem(k))||0;}catch{return 0;}};
+let lastBattleBgm=readStoredTrack(LAST_BATTLE_BGM_KEY),nextBattleBgm=readStoredTrack(NEXT_BATTLE_BGM_KEY);
+function upcomingBattleBgm(){
+ if(!BATTLE_BGM_TRACKS.includes(nextBattleBgm)||nextBattleBgm===lastBattleBgm){
+  const choices=BATTLE_BGM_TRACKS.filter(id=>id!==lastBattleBgm);
+  nextBattleBgm=choices[Math.floor(Math.random()*choices.length)];
+  try{localStorage.setItem(NEXT_BATTLE_BGM_KEY,String(nextBattleBgm));}catch{}
+ }
+ return nextBattleBgm;
+}
 function battleBgmTrack(){
- if(!battle)return BATTLE_BGM_TRACKS[0];
+ if(!battle)return upcomingBattleBgm();
  if(BATTLE_BGM_TRACKS.includes(battle.bgmTrack))return battle.bgmTrack;
- const choices=BATTLE_BGM_TRACKS.filter(id=>id!==lastBattleBgm);
- battle.bgmTrack=choices[Math.floor(Math.random()*choices.length)];
+ battle.bgmTrack=upcomingBattleBgm();
  lastBattleBgm=battle.bgmTrack;try{localStorage.setItem(LAST_BATTLE_BGM_KEY,String(lastBattleBgm));}catch{}
  return battle.bgmTrack;
 }
+// Background loads run one at a time so they never compete with the track being played.
+let bgmPreloadChain=Promise.resolve();
+function preloadBgm(id){
+ const url=window.TACTICS_BGM?.[id];
+ if(!url||!save.settings.sound||loadedBgm.has(url)||failedBgm.has(url))return;
+ bgmPreloadChain=bgmPreloadChain.then(()=>loadBgm(url)).catch(()=>{});
+}
+function preloadUpcomingBgm(){preloadBgm(VICTORY_BGM_TRACK);preloadBgm(upcomingBattleBgm());}
 // v1.1.2: every victory plays track 10 once. It is preloaded when a battle starts.
 const VICTORY_BGM_TRACK=10;
 function bgmTrackFor(type){return type==='battle'||type==='boss'?battleBgmTrack():type==='victory'?VICTORY_BGM_TRACK:1;}
@@ -535,7 +555,7 @@ function stopBgmPlayback(){bgmGeneration++;soundtrack?.stop();filePlayer?.stop()
 function syncBgm(){
  if(!playingBgm||!audioCtx||!save.settings.sound||document.hidden){stopBgmPlayback();return;}
  const id=bgmTrackFor(playingBgm),url=window.TACTICS_BGM?.[id]||window.TACTICS_BGM?.[playingBgm],key=url?'file:'+url:'web:'+id;
- if(BATTLE_BGM_TRACKS.includes(id)){const victory=window.TACTICS_BGM?.[VICTORY_BGM_TRACK];if(victory&&!failedBgm.has(victory))loadBgm(victory).catch(()=>{});}
+ if(BATTLE_BGM_TRACKS.includes(id))preloadUpcomingBgm();
  if(activeBgmKey===key)return;
  stopBgmPlayback();const generation=bgmGeneration;activeBgmKey=key;bgmError='';
  const current=()=>activeBgmKey===key&&bgmGeneration===generation;
@@ -2032,7 +2052,8 @@ playBgm('title');
 window.TACTICS={version:GAME_VERSION,getState:()=>copy({stage:battle?.stageId,phase:battle?.phase,round:battle?.round,mapSeed:battle?.mapSeed,mapRules:battle?.mapRules,selected,mode,busy,isTitle,activeSpell,activeProjectile,criticalShot,visualSlow,pendingFacing:battle?.pendingFacing,statusVisuals:[...statusModels.keys()],inspectedEnemy,inspectedItem,lastHitReport,units:battle?.units,tiles:battle?.tiles,pickups:battle?.pickups,completed:save.completed,missionMode,missionChapter:missionMode?save.missionChapter:null,missionCleared:!!save.missionCleared,drawCalls:renderer.info.render.calls}),getCatalog:()=>({chapters:CHAPTERS.length,stages:STAGES.length,heroes:HEROES.length,skills:Object.keys(SKILLS).length}),tileScreen:(x,z)=>project(toWorld(tile(x,z)).add(new THREE.Vector3(0,.1,0)))};
 battle=makeBattle(STAGES[0]);selected='kyle';buildScene();refreshUI();$('#sound').textContent=save.settings.sound?'♪':'♩';window.TACTICS_READY=true;
 // Track 1 (title and every non-battle screen) is loaded once at startup.
-if(window.TACTICS_BGM?.[1])showLoading(loadBgm(window.TACTICS_BGM[1]).catch(()=>{}));
+// Then the first battle's track is preloaded in the background.
+if(window.TACTICS_BGM?.[1]){const titleLoad=loadBgm(window.TACTICS_BGM[1]).catch(()=>{});showLoading(titleLoad);titleLoad.then(()=>preloadBgm(upcomingBattleBgm()));}
 
 if(document.modelContext?.registerTool){const life=new AbortController();try{Promise.resolve(document.modelContext.registerTool({name:'read_tactics_battle',title:'전투 상태 확인',description:'현재 전투의 턴, 캐릭터, 지형 상태를 확인합니다. 게임 상태는 바뀌지 않습니다.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('빈 객체를 입력하세요.');return window.TACTICS.getState();}},{signal:life.signal})).catch(()=>{});}catch{}window.addEventListener('pagehide',()=>life.abort(),{once:true});}
 })();
