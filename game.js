@@ -906,7 +906,7 @@ function estimate(a,b,s,center=b){
  const areaFactor=areaDamageFactor(s,center,b);
  // Keep the existing order: element -> fortress -> enemy damage cap -> immunity -> area.
  let dmg=preAffinity*affinity*fortressFactor;
- if(a.team==='enemy'&&b.team==='ally'){const caps=difficultyProfile(save.difficulty).cap;dmg=Math.min(dmg,b.maxHp*caps[a.boss?2:a.elite?1:0]);}
+ if(a.team==='enemy'&&b.team==='ally'){const caps=difficultyProfile(save.difficulty).cap,capScale=Math.max(1,stageBalance(getStage())?.atk||1);dmg=Math.min(dmg,b.maxHp*caps[a.boss?2:a.elite?1:0]*capScale);}
  dmg*=immunityFactor*areaFactor;
  const damage=Math.max(1,Math.round(dmg));
  // These are sequential, rounded contributions using the SAME damage pipeline

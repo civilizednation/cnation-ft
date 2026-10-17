@@ -76,8 +76,8 @@ for it in range(len(history), len(history) + ITER):
         e = s - tgt  # >0: too hard
         if abs(e) > .35:
             step = clamp(e, -3, 3)
-            atk = clamp(atk * math.exp(-.28 * step), .4, 2.6)
-            hp = clamp(hp * math.exp(-.16 * step), .4, 2.6)
+            atk = clamp(atk * math.exp(-.2 * step), .4, 2.6)
+            hp = clamp(hp * math.exp(-.12 * step), .4, 2.6)
             # Large multipliers make one-shot or bullet-sponge enemies; move to enemy count instead
             # and pull the multipliers part of the way back toward 1.
             if (e > .8 and atk < .75 and count > -3) or (e < -.8 and atk > 1.5 and count < 3):

@@ -144,6 +144,13 @@ async function runStage(stage,maxTries){
   if(r.win)break;
   if(a<maxTries){T.retryBattle();T.closeSheet();T.startBattle(stage,true);T.closeSheet();}
  }
+ if(!tries.at(-1).win){
+  // A real player keeps retrying until the battle is won; give the campaign that progress so one
+  // lost battle does not starve every later battle of experience. The attempts stay recorded as losses.
+  if(!B()||!['player','enemy'].includes(B().phase)){T.retryBattle();T.closeSheet();}
+  for(const u of B().units)if(u.team==='enemy')u.hp=0;
+  T.checkEnd();await wait(50);T.closeSheet();
+ }
  return tries;
 }
 window.__runStory=async(difficulty,maxTries=3)=>{
