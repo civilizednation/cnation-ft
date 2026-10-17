@@ -45,6 +45,10 @@ Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
 Any new field on save/battle/unit must stay valid under these checks (or update them with migration in `normalizeSave`).
 Save keys: `cnation-tactics-save-v1` (story), `cnation-tactics-mission-save-v1` (mission).
+`persist()` stamps `save.savedAt` and mirrors every auto-save to IndexedDB (`auto:<key>` in the slot DB);
+`restoreNewerAutoSaves()` restores the newer copy at startup. The startup save load runs at module top level,
+so anything `validSave`/`normalizeSave` touch (e.g. `HERO_LEVEL_CAP`) must be declared above it.
+`continueJourney()` re-reads the story save from disk.
 
 ## Checks before pushing
 - `node --check game.js && node --check sw.js`
