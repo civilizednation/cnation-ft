@@ -15,7 +15,8 @@ Always write every message to the user in Korean (한국어) — progress update
 - `sw.js` — service worker, network-first, caches only the files in `CACHED_PATHS`.
 - `revisions.html` — public revision history, linked from the title screen.
 - `manifest.webmanifest`, `icon.png` — PWA.
-- `fonts/` — `stylish.woff2` (display: titles, headings, buttons, `.unitname`) and `gowun-dodum.woff2` (body),
+- `fonts/` — `stylish.woff2` is the DEFAULT for all text (menus, titles, buttons, stats, dialogue); `gowun-dodum.woff2`
+  only for detailed descriptions (`p`, `small`, `li`, `td`, `.footnote`, `.battlelog`, ...; dialogue `p` stays Stylish),
   SIL OFL (`fonts/OFL-*.txt`). Subset to the characters used in index.html/game.js/revisions.html.
   **After adding or changing any in-game text, run `python3 tools/subset-fonts.py`** (needs `pip install fonttools brotli`)
   and bump `?v=` on the font URLs (index.html, revisions.html, sw.js) — otherwise new characters fall back to the system font.
