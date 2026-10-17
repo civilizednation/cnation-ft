@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.2.1';
+const GAME_VERSION='1.2.2';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -254,6 +254,9 @@ function repairPickups(b){
   used.delete(old);item.x=spot.x;item.z=spot.z;used.add(key(item.x,item.z));
  }
 }
+// v1.2.2: declared before the startup save load below; referencing them earlier threw a
+// ReferenceError that made every saved game look invalid at startup (continue opened a blank game).
+const HERO_LEVEL_CAP=40,LEGACY_HERO_LEVEL_CAP=50;
 function normalizeSave(s){for(const p of s.party||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}for(const p of s.retryParty||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}s.skippedSides??=[];s.consumables??={hpSmall:0,hpMedium:s.potions||0,hpLarge:0,mpSmall:0,mpLarge:0};for(const side of STAGES.filter(v=>v.kind==='side'&&!s.completed.includes(v.id))){const next=`c${side.chapter}s${side.n+1}`;if((s.completed.includes(next)||s.battle?.stageId===next||s.retry?.stageId===next)&&!s.skippedSides.includes(side.id))s.skippedSides.push(side.id);}s.inventory??=[];s.lootSeq=Math.max(Number.isSafeInteger(s.lootSeq)?s.lootSeq:0,...s.inventory.map(v=>Number(v.uid.slice(5))));const seq={value:s.lootSeq};for(const p of s.party)migrateLegacyGear(p,s.inventory,seq);s.lootSeq=seq.value;if(s.retry){s.retryGold??=s.gold;s.retryInventory??=copy(s.inventory);s.retryConsumables??={hpSmall:0,hpMedium:s.retryPotions??s.potions??0,hpLarge:0,mpSmall:0,mpLarge:0};s.retryLootSeq=Math.max(Number.isSafeInteger(s.retryLootSeq)?s.retryLootSeq:0,...s.retryInventory.map(v=>Number(v.uid.slice(5))));const retrySeq={value:s.retryLootSeq};for(const p of s.retryParty||[])migrateLegacyGear(p,s.retryInventory,retrySeq);s.retryLootSeq=retrySeq.value;}for(const b of [s.battle,s.retry])if(b){if(s.completed.includes(b.stageId)&&!b.rewarded){b.replay=true;b.pickups=[];if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}}else if(!b.pickups)b.pickups=makePickups(b,STAGES.find(v=>v.id===b.stageId));else repairPickups(b);const party=b===s.retry?(s.retryParty||s.party):s.party,inventory=b===s.retry?(s.retryInventory||s.inventory):s.inventory;for(const u of b.units||[])if(u.team==='ally'){const record=party.find(p=>p.id===u.heroId);if(record){u.crit=equipmentCriticalRate(record,inventory);if(isPhysicalHero(u)){u.maxMp=physicalMaxMP(record,inventory);u.mp=Math.min(u.mp,u.maxMp);}}}}return s;}
 function makePickups(b,stage){
  if(b.replay||save.completed.includes(stage.id)){if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}return [];}
@@ -347,7 +350,7 @@ function downloadJSON(value,filename){const url=URL.createObjectURL(new Blob([JS
 function applySavedRecord(kind,raw){if(!validModeRecord(kind,raw))throw Error('유효하지 않거나 다른 모드의 저장 데이터입니다.');const data=normalizeSave(copy(raw));if(kind==='mission'&&!missionMode){enterMission();}else if(kind==='story'&&missionMode)throw Error('현재 모드를 종료한 뒤 스토리 저장을 불러와 주세요.');
  const key=kind==='mission'?MISSION_SAVE_KEY:SAVE_KEY;
  // Commit to localStorage before switching the active in-memory session.
- localStorage.setItem(key,JSON.stringify(data));localStorage.setItem(key+'-saved-at',new Date().toISOString());
+ data.savedAt=Date.now();const json=JSON.stringify(data);localStorage.setItem(key,json);localStorage.setItem(key+'-saved-at',new Date(data.savedAt).toISOString());mirrorAutoSave(key,json,data.savedAt);
  save=data;if(kind==='mission')missionSelection={chapter:save.missionChapter,difficulty:save.difficulty};
  renderer.setPixelRatio(Math.min(devicePixelRatio,save.settings.quality===0?1:1.75));$('#sound').textContent=save.settings.sound?'♪':'♩';continueJourney();}
 function showSaveModePicker(back=closeSheet){
@@ -380,7 +383,29 @@ function showSaveManager(back=showMenu,kind=isTitle?null:saveMode()){
 }
 function confirmLoad(kind,getData,label,back=closeSheet){showSheet('저장 기록 불러오기',`<p><b>${escapeHTML(label)}</b> 기록을 불러오면 현재 ${modeLabel(kind)} 진행 상황을 교체합니다.</p><p class="footnote">현재 진행을 보관하려면 먼저 수동 슬롯에 저장하거나 파일로 내보내세요.</p><button class="primary" id="confirmLoadNow">불러오기</button><button class="secondary" id="cancelLoadNow">취소</button>`,()=>{$('#confirmLoadNow').onclick=async()=>{try{const data=await getData();applySavedRecord(kind,data);toast(`${label} 기록을 불러왔습니다.`);}catch(e){toast(e.message||'불러오기에 실패했습니다.');}};$('#cancelLoadNow').onclick=()=>showSaveManager(back,kind);},{back:()=>showSaveManager(back,kind)});}
 
-function persist(){if(isTitle)return;save.battle=battle?copy(battle):null;try{localStorage.setItem(activeSaveKey(),JSON.stringify(save));localStorage.setItem(activeSaveKey()+'-saved-at',new Date().toISOString());}catch{toast('자동 저장에 실패했습니다. 저장 화면에서 파일로 내보내 주세요.');}}
+function persist(){if(isTitle)return;save.battle=battle?copy(battle):null;save.savedAt=Date.now();const key=activeSaveKey(),json=JSON.stringify(save);let stored=true;try{localStorage.setItem(key,json);localStorage.setItem(key+'-saved-at',new Date(save.savedAt).toISOString());}catch{stored=false;}mirrorAutoSave(key,json,save.savedAt);if(!stored)toast('자동 저장에 실패했습니다. 저장 화면에서 파일로 내보내 주세요.');}
+// v1.2.2: every auto-save is mirrored to IndexedDB. Home-screen web apps on iOS can lose the
+// latest localStorage write when the app is closed from the app switcher; on startup the
+// newer of the two copies wins.
+let autoSaveMirror=Promise.resolve();
+const autoSaveId=key=>'auto:'+key;
+function mirrorAutoSave(key,json,savedAt){autoSaveMirror=autoSaveMirror.then(()=>slotDBOperation('write',autoSaveId(key),{id:autoSaveId(key),json,savedAt})).catch(()=>{});}
+function savedAtOf(data,key){return Number.isFinite(data?.savedAt)?data.savedAt:(Date.parse(localStorage.getItem(key+'-saved-at')||'')||0);}
+async function restoreNewerAutoSaves(){
+ let restored=false;
+ for(const key of [SAVE_KEY,MISSION_SAVE_KEY]){
+  try{
+   const record=await slotDBOperation('read',autoSaveId(key));if(!record?.json)continue;
+   const mirror=JSON.parse(record.json),valid=key===SAVE_KEY?validSave(mirror):validMissionSave(mirror);if(!valid)continue;
+   let local=null;try{local=JSON.parse(localStorage.getItem(key));}catch{}
+   const localValid=local&&(key===SAVE_KEY?validSave(local):validMissionSave(local));
+   if(localValid&&savedAtOf(local,key)>=savedAtOf(mirror,key))continue;
+   localStorage.setItem(key,record.json);localStorage.setItem(key+'-saved-at',new Date(savedAtOf(mirror,key)||Date.now()).toISOString());
+   if(key===SAVE_KEY)restored=true;
+  }catch{}
+ }
+ if(restored&&isTitle&&!missionMode){const r=readStorySave();if(r.kind==='valid')save=r.data;refreshTitleSaveState();}
+}
 function toast(msg){$('#toast').textContent=msg;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2600);}
 let audioCtx,bgm,playingBgm='';
 // Temporary original arrangements using the user's 12 scene roles and BPMs.
@@ -586,7 +611,6 @@ function physicalMaxMP(p,inventory){const h=HEROES.find(h=>h.id===p.id);let mp=p
 function heroStats(p){const h=heroDef(p.id),l=p.level-1,c=p.classLevel,e=p.equip;let o={...h,level:p.level,classLevel:c,branch:0,equip:e,equipped:p.equipped,maxHp:Math.round((h.hp+l*7+c*16)*(p.id==='kyle'&&c>=1?1.1:p.id==='bran'&&c>=2?1.2:1)),maxMp:h.mp+l*2+c*8,atk:h.atk+l*3+c*5,def:h.def+l*1.8+c*4,mag:h.mag+l*3+c*5,res:h.res+l*1.7+c*3,move:h.move,crit:h.crit+(p.id==='kyle'&&c>=2?.05:0),eva:h.eva+(p.id==='nero'&&c>=2?.1:0)};if(p.id==='bran'&&c>=1){o.def*=1.15;o.move+=c;}if(p.id==='kyle'&&c>=3){o.atk=Math.round(o.atk*1.08)+3;o.def-=2;o.crit+=.03;}for(let i=0;i<4;i++){const r=equippedRecord(p,i),g=GEAR.find(g=>g.id===r?.gearId);if(g)for(const [k,v]of Object.entries(g.bonus))o[k]=(o[k]||0)+v;}o.crit=finalCriticalRate(p.id,o.crit);if(isPhysicalHero(p)){o.maxMp=physicalMaxMP(p,save.inventory);if(['kyle','bran','nero'].includes(p.id))o.def+=3;}return o;}
 function className(u){const h=heroDef(u.heroId||u.id);if(!h)return u.name;const index=Math.min(u.classLevel||0,h.job.length-1);return h.job[index];}
 // v0.7.16: Fixed level cap; higher EXP requirements start at Lv.26 and Lv.31.
-const HERO_LEVEL_CAP=40,LEGACY_HERO_LEVEL_CAP=50;
 function xpToNextLevel(level){
  if(level>=HERO_LEVEL_CAP)return 0;
  const base=80+level*18;
@@ -1765,7 +1789,13 @@ function showNewGame(){const damaged=readStorySave().kind==='invalid';showSheet(
 function hasSave(){return readStorySave().kind==='valid';}
 function hasStoredSave(){return ['valid','invalid'].includes(readStorySave().kind);}
 function exportDamagedSave(){const record=readStorySave();if(record.kind!=='invalid')return;const url=URL.createObjectURL(new Blob([record.raw],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`cnation-tactics-damaged-save-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('손상된 저장 원본을 내보냈습니다.');}
-function refreshTitleSaveState(){const state=readStorySave().kind;$('#continue').hidden=state!=='valid';$('#recoverSave').hidden=state!=='invalid';$('#newGame').className=state==='valid'?'secondary':'primary';}
+function storySaveSummary(data){
+ const b=data.battle,stage=b&&['player','enemy'].includes(b.phase)?STAGES.find(s=>s.id===b.stageId):null,ch=stage?stage.chapter:(data.chapter||0);
+ const done=data.completed.filter(id=>STAGES.find(s=>s.id===id)?.kind!=='side').length;
+ const when=savedAtOf(data,SAVE_KEY),d=when?new Date(when):null,pad=n=>String(n).padStart(2,'0'),time=d?`${d.getMonth()+1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`:'';
+ return `${CHAPTERS[ch][0]} · ${stage?`「${stage.name}」 전투 중`:`본편 ${done}전 완료`}${time?` · ${time} 저장`:''}`;
+}
+function refreshTitleSaveState(){const record=readStorySave(),state=record.kind;$('#continue').hidden=state!=='valid';$('#continue').innerHTML=state==='valid'?`스토리 이어하기<small class="save-summary">${escapeHTML(storySaveSummary(record.data))}</small>`:'스토리 이어하기';$('#recoverSave').hidden=state!=='invalid';$('#newGame').className=state==='valid'?'secondary':'primary';}
 function newJourney(difficulty){save=fresh(difficulty);isTitle=false;battle=null;currentChapter=0;closeSheet();playBgm('world');showStory(STAGES[0]);}
 const CHAPTER_SCENES=[
  {land:0x7eaa83,shade:0x628c6d,sky:0xc9dfc9,road:0xcbb998,accent:0x8be1bf,kind:'ruin'},
@@ -1989,7 +2019,7 @@ function refreshLegacyPrologueBattle(){
 function retryBattle(){restoreRetryProgress();battle=copy(save.retry||makeBattle(getStage()));refreshLegacyPrologueBattle();busy=false;preview=null;skill=null;selected=battle.units[0].id;mode='move';closeSheet();buildScene();refreshUI();persist();playBgm(isBossStage(getStage())?'boss':'battle');}
 function showEnding(){playBgm('ending');showSheet('새로운 아침',`<div class="dialogue"><b>리아</b><p>이제 들리지 않아. 나를 부르던 코어의 목소리도, 백 년 전의 전쟁도.</p><b>카일</b><p>그럼 이제 네가 가고 싶은 곳으로 가자. 우리 모두 함께.</p></div><p>에테르는 다시 대륙을 흘렀다. 병기의 시대는 끝났지만, 여섯 사람의 여행은 아직 끝나지 않았다.</p><div class="result"><div class="eyebrow">THE ARCA CHRONICLE</div><h2 style="margin:15px">FIN</h2></div><button class="primary" id="postGame">남은 모험 계속하기</button>`,()=>{$('#postGame').onclick=()=>showWorld(9);},{noClose:true});}
 function resumeBattle(){if(busy)return;closeSheet();isTitle=false;selected=selected||alive('ally')[0]?.id;refreshUI();refreshHighlights();playBgm(isBossStage(getStage())?'boss':'battle');if(battle.phase==='enemy')enemyTurn();}
-function continueJourney(){unlockAudio();isTitle=false;battle=save.battle?copy(save.battle):null;currentChapter=save.chapter||0;closeSheet();const updatedTutorial=battle&&refreshLegacyPrologueBattle();if(updatedTutorial)toast('프롤로그 난이도를 조정해 전투를 새로 시작합니다.');if(battle){selected=(battle.units.find(u=>u.team==='ally'&&u.hp>0&&!u.acted)||battle.units.find(u=>u.team==='ally'))?.id;preview=null;skill=null;mode=battle.units.find(u=>u.id===selected)?.moved?'attack':'move';busy=false;buildScene();refreshUI();if(['victory','defeat'].includes(battle.phase))showResult();else resumeBattle();}else{battle=makeBattle(STAGES[0]);buildScene();battle=null;showWorld(currentChapter);}}
+function continueJourney(){unlockAudio();if(!missionMode){const record=readStorySave();if(record.kind!=='valid'){refreshTitleSaveState();toast('이어갈 저장 기록을 찾지 못했습니다.');return;}save=record.data;}isTitle=false;battle=save.battle?copy(save.battle):null;currentChapter=save.chapter||0;closeSheet();const updatedTutorial=battle&&refreshLegacyPrologueBattle();if(updatedTutorial)toast('프롤로그 난이도를 조정해 전투를 새로 시작합니다.');if(battle){selected=(battle.units.find(u=>u.team==='ally'&&u.hp>0&&!u.acted)||battle.units.find(u=>u.team==='ally'))?.id;preview=null;skill=null;mode=battle.units.find(u=>u.id===selected)?.moved?'attack':'move';busy=false;buildScene();refreshUI();if(['victory','defeat'].includes(battle.phase))showResult();else resumeBattle();}else{battle=makeBattle(STAGES[0]);buildScene();battle=null;showWorld(currentChapter);}}
 // A previous service worker can briefly pair old HTML with the new script.
 // Upgrade the small title surface in-place so this transition never crashes.
 if(!$('#encyclopediaBtn')){const button=document.createElement('button');button.id='encyclopediaBtn';button.className='secondary';button.textContent='백과사전';$('#newGame').after(button);}
@@ -2050,7 +2080,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){stopBgmPla
 playBgm('title');
 // Public, read-only diagnostic state. Useful for reproducing battle reports.
 window.TACTICS={version:GAME_VERSION,getState:()=>copy({stage:battle?.stageId,phase:battle?.phase,round:battle?.round,mapSeed:battle?.mapSeed,mapRules:battle?.mapRules,selected,mode,busy,isTitle,activeSpell,activeProjectile,criticalShot,visualSlow,pendingFacing:battle?.pendingFacing,statusVisuals:[...statusModels.keys()],inspectedEnemy,inspectedItem,lastHitReport,units:battle?.units,tiles:battle?.tiles,pickups:battle?.pickups,completed:save.completed,missionMode,missionChapter:missionMode?save.missionChapter:null,missionCleared:!!save.missionCleared,drawCalls:renderer.info.render.calls}),getCatalog:()=>({chapters:CHAPTERS.length,stages:STAGES.length,heroes:HEROES.length,skills:Object.keys(SKILLS).length}),tileScreen:(x,z)=>project(toWorld(tile(x,z)).add(new THREE.Vector3(0,.1,0)))};
-battle=makeBattle(STAGES[0]);selected='kyle';buildScene();refreshUI();$('#sound').textContent=save.settings.sound?'♪':'♩';window.TACTICS_READY=true;
+battle=makeBattle(STAGES[0]);selected='kyle';buildScene();refreshUI();$('#sound').textContent=save.settings.sound?'♪':'♩';window.TACTICS_READY=true;restoreNewerAutoSaves();
 // Track 1 (title and every non-battle screen) is loaded once at startup.
 // Then the first battle's track is preloaded in the background.
 if(window.TACTICS_BGM?.[1]){const titleLoad=loadBgm(window.TACTICS_BGM[1]).catch(()=>{});showLoading(titleLoad);titleLoad.then(()=>preloadBgm(upcomingBattleBgm()));}
