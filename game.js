@@ -290,7 +290,7 @@ function missionStages(ch){return STAGES.filter(s=>s.chapter===ch&&s.kind!=='sid
 function missionFinal(){return chapterFinalStage(missionStages(save.missionChapter)[0]);}
 function missionDifficultyLabel(d){return {story:'하 · STORY',normal:'중 · NORMAL',tactical:'상 · TACTICAL'}[d]||d;}
 function showModeSelect(){showSheet('게임 모드 선택',`<p class="footnote">원하는 방식으로 아르카 연대기를 플레이하세요. 스토리와 미션 진행 기록은 서로 독립적으로 저장됩니다.</p><button class="choice" id="chooseStory"><b>📖 스토리 모드</b><small>프롤로그부터 FINAL까지 모든 챕터를 순서대로 진행합니다.</small></button><button class="choice" id="chooseMission"><b>⚔️ 미션 모드</b><small>10개 챕터 중 하나를 선택해 해당 챕터의 마지막 보스까지 진행합니다. 챕터별 캐릭터와 장비 자동 설정.</small></button>`,()=>{$('#chooseStory').onclick=showNewGame;$('#chooseMission').onclick=()=>showMissionSetup();});}
-function showMissionSetup(){if(busy)return;const existing=readMissionSave();showSheet('미션 모드 · 챕터 선택',`<p class="footnote">프롤로그부터 FINAL까지 자유롭게 선택합니다. 선택한 챕터의 스토리 전투 3개와 보스전(있는 챕터)을 진행하며, 해당 챕터 클리어 후 결과와 전투 히스토리를 확인합니다. 기존 스토리 저장은 유지됩니다.</p><label for="missionChapter">챕터</label><select class="form-wide" id="missionChapter">${CHAPTERS.map((c,i)=>`<option value="${i}" ${missionSelection.chapter===i?'selected':''}>${c[0]} · ${c[1]}</option>`).join('')}</select><div class="codex-card" id="missionSummary"></div><label for="missionDifficulty">난이도</label><select class="form-wide" id="missionDifficulty">${[['story','하 · STORY'],['normal','중 · NORMAL'],['tactical','상 · TACTICAL']].map(([v,l])=>`<option value="${v}" ${missionSelection.difficulty===v?'selected':''}>${l}</option>`).join('')}</select><button class="primary" id="missionBegin">선택 챕터 시작</button>${existing?`<button class="secondary" id="missionResume">이전 미션 이어하기 · ${CHAPTERS[existing.missionChapter][0]}</button>`:''}<p class="footnote">새 미션을 시작하면 이전 미션 기록만 교체됩니다. 스토리 기록은 영향을 받지 않습니다.</p>`,()=>{const update=()=>{const ch=+$('#missionChapter').value,st=missionStages(ch),heroes=HEROES.filter(h=>h.join<=ch);$('#missionSummary').innerHTML=`<b>${CHAPTERS[ch][0]} · ${CHAPTERS[ch][1]}</b><p class="footnote">${CHAPTERS[ch][2]} · 추천 Lv.${st[0].level}~${st.at(-1).level}<br>진행: ${st.map(v=>v.name).join(' → ')}<br>참가: ${heroes.map(h=>h.name).join(' · ')}<br>스토리 모드 평균 장비 자동 장착</p>`;};$('#missionChapter').onchange=e=>{missionSelection.chapter=+e.target.value;update();};$('#missionDifficulty').onchange=e=>missionSelection.difficulty=e.target.value;$('#missionBegin').onclick=beginMission;$('#missionResume')?.addEventListener('click',resumeMission);update();},{back:showModeSelect});}
+function showMissionSetup(){if(busy)return;const existing=readMissionSave();showSheet('미션 모드 · 챕터 선택',`<p class="footnote">프롤로그부터 FINAL까지 자유롭게 선택합니다. 선택한 챕터의 스토리 전투 3개와 보스전(있는 챕터)을 진행하며, 해당 챕터 클리어 후 결과와 전투 히스토리를 확인합니다. 기존 스토리 저장은 유지됩니다.</p><label for="missionChapter">챕터</label><select class="form-wide" id="missionChapter">${CHAPTERS.map((c,i)=>`<option value="${i}" ${missionSelection.chapter===i?'selected':''}>${c[0]} · ${c[1]}</option>`).join('')}</select><div class="codex-card" id="missionSummary"></div><label for="missionDifficulty">난이도</label><select class="form-wide" id="missionDifficulty">${[['story','하 · STORY'],['normal','중 · NORMAL'],['tactical','상 · TACTICAL']].map(([v,l])=>`<option value="${v}" ${missionSelection.difficulty===v?'selected':''}>${l}</option>`).join('')}</select><button class="primary" id="missionBegin">선택 챕터 시작</button>${existing?`<button class="secondary" id="missionResume">이전 미션 이어하기 · ${CHAPTERS[existing.missionChapter][0]}</button>`:''}<p class="footnote">새 미션을 시작하면 이전 미션 기록만 교체됩니다. 스토리 기록은 영향을 받지 않습니다.</p>`,()=>{const update=()=>{const ch=+$('#missionChapter').value,st=missionStages(ch),heroes=HEROES.filter(h=>h.join<=ch);$('#missionSummary').innerHTML=`<b>${CHAPTERS[ch][0]} · ${CHAPTERS[ch][1]}</b><p class="footnote">${CHAPTERS[ch][2]} · 추천 Lv.${st[0].level}~${st.at(-1).level} · 시작 Lv.${MISSION_START_LEVELS[ch]}<br>진행: ${st.map(v=>v.name).join(' → ')}<br>참가: ${heroes.map(h=>h.name).join(' · ')}<br>스토리 모드 평균 장비 자동 장착</p>`;};$('#missionChapter').onchange=e=>{missionSelection.chapter=+e.target.value;update();};$('#missionDifficulty').onchange=e=>missionSelection.difficulty=e.target.value;$('#missionBegin').onclick=beginMission;$('#missionResume')?.addEventListener('click',resumeMission);update();},{back:showModeSelect});}
 // Mission-mode baseline: reproduce a conservative "average story progression" loadout.
 // A mission starts at the beginning of the selected chapter, so its equipment comes
 // from what a normal story player could have accumulated by the END of the previous
@@ -302,8 +302,11 @@ function missionStoryAverageGearPlan(ch){
  const sourceChapter=Math.max(0,ch-1),band=gearBandForChapter(sourceChapter);
  return {band,tiers:[1,0,0,0]};
 }
+// v1.3.0: missions start at the party level a story player typically has at the start of that
+// chapter (measured by simulation, side battles included), so both modes share one tuning table.
+const MISSION_START_LEVELS=[1,7,12,17,21,25,28,31,33,36];
 function setupMissionParty(ch){
- const level=missionStages(ch)[0].level,sourceChapter=Math.max(0,ch-1),plan=missionStoryAverageGearPlan(ch);
+ const level=MISSION_START_LEVELS[ch]??missionStages(ch)[0].level,sourceChapter=Math.max(0,ch-1),plan=missionStoryAverageGearPlan(ch);
  for(const p of save.party){
   p.level=level;p.xp=0;p.classLevel=promotionRankFor(p.id,level);p.branch=0;
   p.equip=[0,0,0];p.equipped=[null,null,null,null];p.hpRatio=1;
@@ -665,26 +668,65 @@ function awardActionXP(heroId,amount,targetLevel=null,earned={value:0}){
 function log(text){if(battle){battle.log??=[];battle.log.push(text);if(battle.log.length>80)battle.log.shift();}}
 function isBossStage(stage){return !!stage&&(stage.kind==='boss'||stage.id==='c9s2');}
 
-// v0.7.32: Stage-specific difficulty rebalance.
-// Applies identically to Story and Mission modes. The mode's own difficulty
-// profile remains intact; these modifiers tune only the listed encounters.
-const STAGE_BALANCE={
- 'c0s0':{hp:1.08,atk:1.05},
- 'c0s1':{hp:1.08,atk:1.05},
- 'c0s2':{count:1,hp:1.08,atk:1.08},
- 'c1s0':{count:-1,hp:.95,atk:.88,soften:1},
- 'c1s1':{count:-1,hp:.90,atk:.84,soften:2},
- 'c1s2':{hp:.92,atk:.92,soften:1},
- 'c1q0':{hp:.92,atk:.92,soften:1},
- 'c1q1':{hp:.92,atk:.92,soften:1},
- 'c1b': {hp:.94,atk:.94},
- 'c2s0':{count:-1,hp:.95,atk:.95,soften:1},
- 'c2s1':{count:-1,hp:.95,atk:.85,soften:2},
- 'c2s2':{count:-1,hp:.95,atk:.92,soften:1},
- 'c4q1':{count:1,hp:1.05,atk:1.08},
- 'c4b': {count:1,hp:1.06,atk:1.08}
+// v1.3.0: per-stage, per-difficulty tuning, calibrated by simulation against the target grade table
+// (tools/balance/targets.py). Each entry is [hp multiplier, attack/magic multiplier, enemy count delta, soften]
+// where soften swaps that many ranged/caster enemies for melee ones. Same table for story and mission.
+const STAGE_TUNING={
+ 'c0s0':{story:[1.08, 1.05, 0, 0],normal:[1.08, 1.05, 0, 0],tactical:[1.08, 1.05, 0, 0]},
+ 'c0s1':{story:[1.08, 1.05, 0, 0],normal:[1.08, 1.05, 0, 0],tactical:[1.08, 1.05, 0, 0]},
+ 'c0s2':{story:[1.08, 1.08, 1, 0],normal:[1.08, 1.08, 1, 0],tactical:[1.08, 1.08, 1, 0]},
+ 'c0q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c0q1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c1s0':{story:[0.95, 0.88, -1, 1],normal:[0.95, 0.88, -1, 1],tactical:[0.95, 0.88, -1, 1]},
+ 'c1s1':{story:[0.9, 0.84, -1, 2],normal:[0.9, 0.84, -1, 2],tactical:[0.9, 0.84, -1, 2]},
+ 'c1s2':{story:[0.92, 0.92, 0, 1],normal:[0.92, 0.92, 0, 1],tactical:[0.92, 0.92, 0, 1]},
+ 'c1q0':{story:[0.92, 0.92, 0, 1],normal:[0.92, 0.92, 0, 1],tactical:[0.92, 0.92, 0, 1]},
+ 'c1q1':{story:[0.92, 0.92, 0, 1],normal:[0.92, 0.92, 0, 1],tactical:[0.92, 0.92, 0, 1]},
+ 'c1b':{story:[0.94, 0.94, 0, 0],normal:[0.94, 0.94, 0, 0],tactical:[0.94, 0.94, 0, 0]},
+ 'c2s0':{story:[0.95, 0.95, -1, 1],normal:[0.95, 0.95, -1, 1],tactical:[0.95, 0.95, -1, 1]},
+ 'c2s1':{story:[0.95, 0.85, -1, 2],normal:[0.95, 0.85, -1, 2],tactical:[0.95, 0.85, -1, 2]},
+ 'c2s2':{story:[0.95, 0.92, -1, 1],normal:[0.95, 0.92, -1, 1],tactical:[0.95, 0.92, -1, 1]},
+ 'c2q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c2q1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c2b':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c3s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c3s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c3s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c3q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c3q1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c3b':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c4s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c4s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c4s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c4q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c4q1':{story:[1.05, 1.08, 1, 0],normal:[1.05, 1.08, 1, 0],tactical:[1.05, 1.08, 1, 0]},
+ 'c4b':{story:[1.06, 1.08, 1, 0],normal:[1.06, 1.08, 1, 0],tactical:[1.06, 1.08, 1, 0]},
+ 'c5s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c5s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c5s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c5q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c5b':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c6s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c6s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c6s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c6q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c6b':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c7s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c7s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c7s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c7q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c7b':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c8s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c8s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c8s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c8q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c8b':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c9s0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c9s1':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c9s2':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]},
+ 'c9q0':{story:[1, 1, 0, 0],normal:[1, 1, 0, 0],tactical:[1, 1, 0, 0]}
 };
-function stageBalance(stage){return STAGE_BALANCE[stage?.id]||null;}
+function stageBalance(stage){const t=STAGE_TUNING[stage?.id]?.[save.difficulty];if(!t)return null;const [hp,atk,count,soften]=t;return {hp,atk,count,soften};}
 function softenEncounterTypes(stage,types,rand){
  const cfg=stageBalance(stage);if(!cfg?.soften||!types.length)return;
  const candidates=[];
@@ -1667,7 +1709,7 @@ function attackScore(u,pos,t,s){
   +enemyCoordination(u,pos,t,s);
 }
 
-async function bossAction(u){const step=(battle.round-1)%5+1,profile=BOSS_PROFILES[u.bossId||getStage().chapter]||BOSS_PROFILES[9];if(step===3){const t=neighbors(tile(u.x,u.z)).find(t=>t.terrain!=='water'&&!occ(t.x,t.z));if(t){const m=MONSTERS[profile.summon],scale=difficultyProfile(save.difficulty),pressure=chapterDifficultyPressure(getStage().chapter),summonHP=Math.round((40+u.level*3)*1.30*scale.hp*pressure.hp),v={...m,id:`summon-${battle.round}-${u.id}`,monsterIndex:profile.summon,team:'enemy',x:t.x,z:t.z,hp:summonHP,maxHp:summonHP,mp:0,maxMp:0,atk:Math.round((14+u.level*2)*scale.atk*pressure.atk),def:Math.round((8+u.level)*1.10*scale.def*pressure.def),res:Math.round((8+u.level)*1.10*scale.def*pressure.def),mag:Math.round((10+u.level)*scale.atk*pressure.atk),level:u.level,move:m.move,jump:1,dir:2,crit:.02,eva:0,statusAttack:m.status,status:{},acted:true,moved:true};battle.units.push(v);const model=figure(v);model.position.copy(toWorld(t));unitGroup.add(model);models.set(v.id,model);createUnitLabel(v);burst(t,0xbce6d4);log(`${u.name} ${m.name} 소환`);toast(`${u.name}이(가) ${m.name}을 소환했습니다.`);return true;}}
+async function bossAction(u){const step=(battle.round-1)%5+1,profile=BOSS_PROFILES[u.bossId||getStage().chapter]||BOSS_PROFILES[9];if(step===3){const t=neighbors(tile(u.x,u.z)).find(t=>t.terrain!=='water'&&!occ(t.x,t.z));if(t){const m=MONSTERS[profile.summon],scale=difficultyProfile(save.difficulty),pressure=chapterDifficultyPressure(getStage().chapter),tune=stageBalance(getStage())||{hp:1,atk:1},summonHP=Math.round((40+u.level*3)*1.30*scale.hp*pressure.hp*tune.hp),v={...m,id:`summon-${battle.round}-${u.id}`,monsterIndex:profile.summon,team:'enemy',x:t.x,z:t.z,hp:summonHP,maxHp:summonHP,mp:0,maxMp:0,atk:Math.round((14+u.level*2)*scale.atk*pressure.atk*tune.atk),def:Math.round((8+u.level)*1.10*scale.def*pressure.def),res:Math.round((8+u.level)*1.10*scale.def*pressure.def),mag:Math.round((10+u.level)*scale.atk*pressure.atk*tune.atk),level:u.level,move:m.move,jump:1,dir:2,crit:.02,eva:0,statusAttack:m.status,status:{},acted:true,moved:true};battle.units.push(v);const model=figure(v);model.position.copy(toWorld(t));unitGroup.add(model);models.set(v.id,model);createUnitLabel(v);burst(t,0xbce6d4);log(`${u.name} ${m.name} 소환`);toast(`${u.name}이(가) ${m.name}을 소환했습니다.`);return true;}}
 if(step===4){const allies=alive('ally');const target=save.difficulty==='tactical'?allies.slice().sort((a,b)=>allies.filter(v=>dist(a,v)<=profile.radius).length-allies.filter(v=>dist(b,v)<=profile.radius).length||dist(u,a)-dist(u,b))[0]:allies.sort((a,b)=>dist(u,a)-dist(u,b))[0];if(target){battle.danger=areaTiles(tile(target.x,target.z),{area:profile.radius,heightRange:99}).map(t=>({x:t.x,z:t.z}));refreshHighlights();log(`${u.name} ${profile.finisher} 예고`);toast(save.difficulty==='story'?`${profile.finisher} 예고! 붉은 칸은 다음 적 페이즈에 공격받습니다. 이동해서 피하세요.`:`${profile.finisher} 예고! 붉은 칸에서 벗어나세요.`);sfx('magic');await sleep(450);return true;}}
 if(step===5&&battle.danger.length){sfx('magic');for(const t of battle.danger){burst(tile(t.x,t.z),0xe9a5e7,5);const v=occ(t.x,t.z);if(v?.team==='ally'){const damage=Math.max(1,Math.round(u.mag*profile.power*1.30));const beforeBoss=v.hp;v.hp=Math.max(0,v.hp-damage);floating(v,`${damage}`);log(`${profile.finisher} → ${v.name} ${damage}`);if(v.hp<=0)models.get(v.id).visible=false;}}battle.danger=[];await sleep(600);return true;}return false;}
 // Find a complete legal route to an attack position, then walk its affordable
