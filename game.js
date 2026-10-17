@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.2.3';
+const GAME_VERSION='1.3.0';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -290,7 +290,7 @@ function missionStages(ch){return STAGES.filter(s=>s.chapter===ch&&s.kind!=='sid
 function missionFinal(){return chapterFinalStage(missionStages(save.missionChapter)[0]);}
 function missionDifficultyLabel(d){return {story:'하 · STORY',normal:'중 · NORMAL',tactical:'상 · TACTICAL'}[d]||d;}
 function showModeSelect(){showSheet('게임 모드 선택',`<p class="footnote">원하는 방식으로 아르카 연대기를 플레이하세요. 스토리와 미션 진행 기록은 서로 독립적으로 저장됩니다.</p><button class="choice" id="chooseStory"><b>📖 스토리 모드</b><small>프롤로그부터 FINAL까지 모든 챕터를 순서대로 진행합니다.</small></button><button class="choice" id="chooseMission"><b>⚔️ 미션 모드</b><small>10개 챕터 중 하나를 선택해 해당 챕터의 마지막 보스까지 진행합니다. 챕터별 캐릭터와 장비 자동 설정.</small></button>`,()=>{$('#chooseStory').onclick=showNewGame;$('#chooseMission').onclick=()=>showMissionSetup();});}
-function showMissionSetup(){if(busy)return;const existing=readMissionSave();showSheet('미션 모드 · 챕터 선택',`<p class="footnote">프롤로그부터 FINAL까지 자유롭게 선택합니다. 선택한 챕터의 스토리 전투 3개와 보스전(있는 챕터)을 진행하며, 해당 챕터 클리어 후 결과와 전투 히스토리를 확인합니다. 기존 스토리 저장은 유지됩니다.</p><label for="missionChapter">챕터</label><select class="form-wide" id="missionChapter">${CHAPTERS.map((c,i)=>`<option value="${i}" ${missionSelection.chapter===i?'selected':''}>${c[0]} · ${c[1]}</option>`).join('')}</select><div class="codex-card" id="missionSummary"></div><label for="missionDifficulty">난이도</label><select class="form-wide" id="missionDifficulty">${[['story','하 · STORY'],['normal','중 · NORMAL'],['tactical','상 · TACTICAL']].map(([v,l])=>`<option value="${v}" ${missionSelection.difficulty===v?'selected':''}>${l}</option>`).join('')}</select><button class="primary" id="missionBegin">선택 챕터 시작</button>${existing?`<button class="secondary" id="missionResume">이전 미션 이어하기 · ${CHAPTERS[existing.missionChapter][0]}</button>`:''}<p class="footnote">새 미션을 시작하면 이전 미션 기록만 교체됩니다. 스토리 기록은 영향을 받지 않습니다.</p>`,()=>{const update=()=>{const ch=+$('#missionChapter').value,st=missionStages(ch),heroes=HEROES.filter(h=>h.join<=ch);$('#missionSummary').innerHTML=`<b>${CHAPTERS[ch][0]} · ${CHAPTERS[ch][1]}</b><p class="footnote">${CHAPTERS[ch][2]} · 추천 Lv.${st[0].level}~${st.at(-1).level}<br>진행: ${st.map(v=>v.name).join(' → ')}<br>참가: ${heroes.map(h=>h.name).join(' · ')}<br>스토리 모드 평균 장비 자동 장착</p>`;};$('#missionChapter').onchange=e=>{missionSelection.chapter=+e.target.value;update();};$('#missionDifficulty').onchange=e=>missionSelection.difficulty=e.target.value;$('#missionBegin').onclick=beginMission;$('#missionResume')?.addEventListener('click',resumeMission);update();},{back:showModeSelect});}
+function showMissionSetup(){if(busy)return;const existing=readMissionSave();showSheet('미션 모드 · 챕터 선택',`<p class="footnote">프롤로그부터 FINAL까지 자유롭게 선택합니다. 선택한 챕터의 스토리 전투 3개와 보스전(있는 챕터)을 진행하며, 해당 챕터 클리어 후 결과와 전투 히스토리를 확인합니다. 기존 스토리 저장은 유지됩니다.</p><label for="missionChapter">챕터</label><select class="form-wide" id="missionChapter">${CHAPTERS.map((c,i)=>`<option value="${i}" ${missionSelection.chapter===i?'selected':''}>${c[0]} · ${c[1]}</option>`).join('')}</select><div class="codex-card" id="missionSummary"></div><label for="missionDifficulty">난이도</label><select class="form-wide" id="missionDifficulty">${[['story','하 · STORY'],['normal','중 · NORMAL'],['tactical','상 · TACTICAL']].map(([v,l])=>`<option value="${v}" ${missionSelection.difficulty===v?'selected':''}>${l}</option>`).join('')}</select><button class="primary" id="missionBegin">선택 챕터 시작</button>${existing?`<button class="secondary" id="missionResume">이전 미션 이어하기 · ${CHAPTERS[existing.missionChapter][0]}</button>`:''}<p class="footnote">새 미션을 시작하면 이전 미션 기록만 교체됩니다. 스토리 기록은 영향을 받지 않습니다.</p>`,()=>{const update=()=>{const ch=+$('#missionChapter').value,st=missionStages(ch),heroes=HEROES.filter(h=>h.join<=ch);$('#missionSummary').innerHTML=`<b>${CHAPTERS[ch][0]} · ${CHAPTERS[ch][1]}</b><p class="footnote">${CHAPTERS[ch][2]} · 추천 Lv.${st[0].level}~${st.at(-1).level} · 시작 Lv.${MISSION_START_LEVELS[ch]}<br>진행: ${st.map(v=>v.name).join(' → ')}<br>참가: ${heroes.map(h=>h.name).join(' · ')}<br>스토리 모드 평균 장비 자동 장착</p>`;};$('#missionChapter').onchange=e=>{missionSelection.chapter=+e.target.value;update();};$('#missionDifficulty').onchange=e=>missionSelection.difficulty=e.target.value;$('#missionBegin').onclick=beginMission;$('#missionResume')?.addEventListener('click',resumeMission);update();},{back:showModeSelect});}
 // Mission-mode baseline: reproduce a conservative "average story progression" loadout.
 // A mission starts at the beginning of the selected chapter, so its equipment comes
 // from what a normal story player could have accumulated by the END of the previous
@@ -302,8 +302,11 @@ function missionStoryAverageGearPlan(ch){
  const sourceChapter=Math.max(0,ch-1),band=gearBandForChapter(sourceChapter);
  return {band,tiers:[1,0,0,0]};
 }
+// v1.3.0: missions start at the party level a story player typically has at the start of that
+// chapter (measured by simulation, side battles included), so both modes share one tuning table.
+const MISSION_START_LEVELS=[1,7,12,17,21,25,28,31,33,36];
 function setupMissionParty(ch){
- const level=missionStages(ch)[0].level,sourceChapter=Math.max(0,ch-1),plan=missionStoryAverageGearPlan(ch);
+ const level=MISSION_START_LEVELS[ch]??missionStages(ch)[0].level,sourceChapter=Math.max(0,ch-1),plan=missionStoryAverageGearPlan(ch);
  for(const p of save.party){
   p.level=level;p.xp=0;p.classLevel=promotionRankFor(p.id,level);p.branch=0;
   p.equip=[0,0,0];p.equipped=[null,null,null,null];p.hpRatio=1;
@@ -665,26 +668,66 @@ function awardActionXP(heroId,amount,targetLevel=null,earned={value:0}){
 function log(text){if(battle){battle.log??=[];battle.log.push(text);if(battle.log.length>80)battle.log.shift();}}
 function isBossStage(stage){return !!stage&&(stage.kind==='boss'||stage.id==='c9s2');}
 
-// v0.7.32: Stage-specific difficulty rebalance.
-// Applies identically to Story and Mission modes. The mode's own difficulty
-// profile remains intact; these modifiers tune only the listed encounters.
-const STAGE_BALANCE={
- 'c0s0':{hp:1.08,atk:1.05},
- 'c0s1':{hp:1.08,atk:1.05},
- 'c0s2':{count:1,hp:1.08,atk:1.08},
- 'c1s0':{count:-1,hp:.95,atk:.88,soften:1},
- 'c1s1':{count:-1,hp:.90,atk:.84,soften:2},
- 'c1s2':{hp:.92,atk:.92,soften:1},
- 'c1q0':{hp:.92,atk:.92,soften:1},
- 'c1q1':{hp:.92,atk:.92,soften:1},
- 'c1b': {hp:.94,atk:.94},
- 'c2s0':{count:-1,hp:.95,atk:.95,soften:1},
- 'c2s1':{count:-1,hp:.95,atk:.85,soften:2},
- 'c2s2':{count:-1,hp:.95,atk:.92,soften:1},
- 'c4q1':{count:1,hp:1.05,atk:1.08},
- 'c4b': {count:1,hp:1.06,atk:1.08}
+// v1.3.0: per-stage, per-difficulty tuning, calibrated by simulation against the target grade table
+// (tools/balance/targets.py). Each entry is [hp multiplier, attack/magic multiplier, enemy count delta, soften]
+// where soften swaps that many ranged/caster enemies for melee ones. Same table for story and mission.
+const STAGE_TUNING={
+ 'c0s0':{story:[1.08,1.05,0,0],normal:[1.08,1.05,0,0],tactical:[1.08,1.05,0,0]},
+ 'c0s1':{story:[1.08,1.05,0,0],normal:[1.66,2.33,2,0],tactical:[1.63,2.23,3,0]},
+ 'c0s2':{story:[2.6,2.6,3,0],normal:[1.51,2.02,3,0],tactical:[1.71,1.92,3,0]},
+ 'c0q0':{story:[1.0,1.0,0,0],normal:[1.75,2.54,2,0],tactical:[1.49,2.07,3,0]},
+ 'c0q1':{story:[1.0,1.0,0,0],normal:[1.4,1.86,3,0],tactical:[1.85,2.41,3,0]},
+ 'c1s0':{story:[1.29,1.43,-1,1],normal:[1.12,1.13,-1,1],tactical:[0.91,0.85,-2,1]},
+ 'c1s1':{story:[1.13,1.21,-1,2],normal:[1.08,1.13,-2,2],tactical:[0.92,0.89,-2,2]},
+ 'c1s2':{story:[1.14,1.28,0,1],normal:[0.97,0.96,0,1],tactical:[0.85,0.79,-1,1]},
+ 'c1q0':{story:[1.05,1.12,0,1],normal:[1.05,1.11,-2,1],tactical:[0.89,0.88,-1,1]},
+ 'c1q1':{story:[1.14,1.31,0,1],normal:[1.11,1.24,0,1],tactical:[0.92,0.93,-2,1]},
+ 'c1b':{story:[1.27,1.54,2,0],normal:[0.99,1.02,-1,0],tactical:[0.93,0.95,-1,0]},
+ 'c2s0':{story:[1.36,1.74,1,1],normal:[1.35,1.6,-1,1],tactical:[1.08,1.15,-1,1]},
+ 'c2s1':{story:[1.39,1.64,0,2],normal:[1.35,1.45,-1,2],tactical:[1.05,0.96,-1,2]},
+ 'c2s2':{story:[1.38,1.71,0,1],normal:[1.2,1.32,0,1],tactical:[1.02,1.03,-1,1]},
+ 'c2q0':{story:[1.19,1.32,1,0],normal:[1.14,1.19,0,0],tactical:[1.07,1.12,-2,0]},
+ 'c2q1':{story:[1.35,1.66,1,0],normal:[1.2,1.26,0,0],tactical:[0.99,1.01,-1,0]},
+ 'c2b':{story:[1.35,1.71,2,0],normal:[1.08,1.14,0,0],tactical:[1.01,1.04,0,0]},
+ 'c3s0':{story:[1.57,2.2,2,0],normal:[1.15,1.33,2,0],tactical:[1.07,1.14,1,0]},
+ 'c3s1':{story:[1.44,1.91,3,0],normal:[1.19,1.35,2,0],tactical:[1.05,1.06,0,0]},
+ 'c3s2':{story:[1.52,2.1,2,0],normal:[1.21,1.41,2,0],tactical:[1.15,1.19,0,0]},
+ 'c3q0':{story:[1.31,1.61,2,0],normal:[1.15,1.25,1,0],tactical:[1.07,1.16,0,0]},
+ 'c3q1':{story:[1.57,2.1,3,0],normal:[1.44,1.83,1,0],tactical:[1.18,1.32,2,0]},
+ 'c3b':{story:[1.7,1.88,3,0],normal:[1.14,1.27,2,0],tactical:[1.08,1.13,1,0]},
+ 'c4s0':{story:[1.69,2.56,3,0],normal:[1.45,1.87,3,0],tactical:[1.32,1.6,1,0]},
+ 'c4s1':{story:[1.55,2.08,3,0],normal:[1.4,1.69,3,0],tactical:[1.34,1.62,1,0]},
+ 'c4s2':{story:[1.61,2.2,3,0],normal:[1.42,1.68,3,0],tactical:[1.29,1.53,1,0]},
+ 'c4q0':{story:[1.84,2.48,3,0],normal:[1.42,1.68,3,0],tactical:[1.28,1.46,2,0]},
+ 'c4q1':{story:[1.57,2.22,3,0],normal:[1.59,1.73,2,0],tactical:[1.22,1.33,0,0]},
+ 'c4b':{story:[2.02,2.23,3,0],normal:[1.3,1.5,2,0],tactical:[1.15,1.31,3,0]},
+ 'c5s0':{story:[1.46,2.0,3,0],normal:[1.32,1.58,2,0],tactical:[1.12,1.23,2,0]},
+ 'c5s1':{story:[1.55,2.18,2,0],normal:[1.28,1.53,1,0],tactical:[1.23,1.32,0,0]},
+ 'c5s2':{story:[1.41,1.88,3,0],normal:[1.34,1.58,1,0],tactical:[1.14,1.23,1,0]},
+ 'c5q0':{story:[1.57,2.2,3,0],normal:[1.18,1.35,2,0],tactical:[1.18,1.21,0,0]},
+ 'c5b':{story:[1.55,2.01,3,0],normal:[1.29,1.45,0,0],tactical:[1.06,1.11,1,0]},
+ 'c6s0':{story:[1.58,2.29,3,0],normal:[1.39,1.63,1,0],tactical:[1.18,1.3,1,0]},
+ 'c6s1':{story:[1.45,1.95,3,0],normal:[1.29,1.59,2,0],tactical:[1.22,1.39,1,0]},
+ 'c6s2':{story:[1.5,2.09,3,0],normal:[1.4,1.74,1,0],tactical:[1.14,1.26,1,0]},
+ 'c6q0':{story:[1.38,1.81,3,0],normal:[1.48,1.61,1,0],tactical:[1.13,1.17,0,0]},
+ 'c6b':{story:[1.62,2.03,3,0],normal:[1.26,1.45,1,0],tactical:[1.14,1.24,1,0]},
+ 'c7s0':{story:[1.41,1.87,3,0],normal:[1.29,1.5,1,0],tactical:[1.1,1.17,1,0]},
+ 'c7s1':{story:[1.44,1.93,3,0],normal:[1.3,1.49,0,0],tactical:[1.12,1.2,0,0]},
+ 'c7s2':{story:[1.33,1.7,3,0],normal:[1.19,1.39,2,0],tactical:[1.11,1.16,0,0]},
+ 'c7q0':{story:[1.33,1.69,3,0],normal:[1.29,1.45,-1,0],tactical:[1.13,1.26,-1,0]},
+ 'c7b':{story:[1.43,1.97,3,0],normal:[1.13,1.18,0,0],tactical:[1.11,1.18,-1,0]},
+ 'c8s0':{story:[1.4,1.81,2,0],normal:[1.16,1.33,2,0],tactical:[1.06,1.1,0,0]},
+ 'c8s1':{story:[1.31,1.66,3,0],normal:[1.1,1.17,2,0],tactical:[1.04,1.04,0,0]},
+ 'c8s2':{story:[1.33,1.68,3,0],normal:[1.18,1.32,1,0],tactical:[1.07,1.08,0,0]},
+ 'c8q0':{story:[1.3,1.62,3,0],normal:[1.13,1.13,0,0],tactical:[1.1,1.21,-1,0]},
+ 'c8b':{story:[1.4,1.82,3,0],normal:[1.19,1.31,-1,0],tactical:[1.0,1.01,0,0]},
+ 'c9s0':{story:[1.48,1.88,0,0],normal:[1.14,1.27,2,0],tactical:[1.02,1.02,0,0]},
+ 'c9s1':{story:[1.63,1.72,3,0],normal:[1.22,1.37,1,0],tactical:[1.11,1.17,0,0]},
+ 'c9s2':{story:[1.42,1.83,2,0],normal:[1.1,1.18,0,0],tactical:[1.0,1.01,0,0]},
+ 'c9q0':{story:[1.49,1.67,3,0],normal:[1.22,1.32,2,0],tactical:[0.98,1.02,0,0]}
 };
-function stageBalance(stage){return STAGE_BALANCE[stage?.id]||null;}
+
+function stageBalance(stage){const t=STAGE_TUNING[stage?.id]?.[save.difficulty];if(!t)return null;const [hp,atk,count,soften]=t;return {hp,atk,count,soften};}
 function softenEncounterTypes(stage,types,rand){
  const cfg=stageBalance(stage);if(!cfg?.soften||!types.length)return;
  const candidates=[];
@@ -864,7 +907,7 @@ function estimate(a,b,s,center=b){
  const areaFactor=areaDamageFactor(s,center,b);
  // Keep the existing order: element -> fortress -> enemy damage cap -> immunity -> area.
  let dmg=preAffinity*affinity*fortressFactor;
- if(a.team==='enemy'&&b.team==='ally'){const caps=difficultyProfile(save.difficulty).cap;dmg=Math.min(dmg,b.maxHp*caps[a.boss?2:a.elite?1:0]);}
+ if(a.team==='enemy'&&b.team==='ally'){const caps=difficultyProfile(save.difficulty).cap,capScale=Math.max(1,stageBalance(getStage())?.atk||1);dmg=Math.min(dmg,b.maxHp*caps[a.boss?2:a.elite?1:0]*capScale);}
  dmg*=immunityFactor*areaFactor;
  const damage=Math.max(1,Math.round(dmg));
  // These are sequential, rounded contributions using the SAME damage pipeline
@@ -1667,7 +1710,7 @@ function attackScore(u,pos,t,s){
   +enemyCoordination(u,pos,t,s);
 }
 
-async function bossAction(u){const step=(battle.round-1)%5+1,profile=BOSS_PROFILES[u.bossId||getStage().chapter]||BOSS_PROFILES[9];if(step===3){const t=neighbors(tile(u.x,u.z)).find(t=>t.terrain!=='water'&&!occ(t.x,t.z));if(t){const m=MONSTERS[profile.summon],scale=difficultyProfile(save.difficulty),pressure=chapterDifficultyPressure(getStage().chapter),summonHP=Math.round((40+u.level*3)*1.30*scale.hp*pressure.hp),v={...m,id:`summon-${battle.round}-${u.id}`,monsterIndex:profile.summon,team:'enemy',x:t.x,z:t.z,hp:summonHP,maxHp:summonHP,mp:0,maxMp:0,atk:Math.round((14+u.level*2)*scale.atk*pressure.atk),def:Math.round((8+u.level)*1.10*scale.def*pressure.def),res:Math.round((8+u.level)*1.10*scale.def*pressure.def),mag:Math.round((10+u.level)*scale.atk*pressure.atk),level:u.level,move:m.move,jump:1,dir:2,crit:.02,eva:0,statusAttack:m.status,status:{},acted:true,moved:true};battle.units.push(v);const model=figure(v);model.position.copy(toWorld(t));unitGroup.add(model);models.set(v.id,model);createUnitLabel(v);burst(t,0xbce6d4);log(`${u.name} ${m.name} 소환`);toast(`${u.name}이(가) ${m.name}을 소환했습니다.`);return true;}}
+async function bossAction(u){const step=(battle.round-1)%5+1,profile=BOSS_PROFILES[u.bossId||getStage().chapter]||BOSS_PROFILES[9];if(step===3){const t=neighbors(tile(u.x,u.z)).find(t=>t.terrain!=='water'&&!occ(t.x,t.z));if(t){const m=MONSTERS[profile.summon],scale=difficultyProfile(save.difficulty),pressure=chapterDifficultyPressure(getStage().chapter),tune=stageBalance(getStage())||{hp:1,atk:1},summonHP=Math.round((40+u.level*3)*1.30*scale.hp*pressure.hp*tune.hp),v={...m,id:`summon-${battle.round}-${u.id}`,monsterIndex:profile.summon,team:'enemy',x:t.x,z:t.z,hp:summonHP,maxHp:summonHP,mp:0,maxMp:0,atk:Math.round((14+u.level*2)*scale.atk*pressure.atk*tune.atk),def:Math.round((8+u.level)*1.10*scale.def*pressure.def),res:Math.round((8+u.level)*1.10*scale.def*pressure.def),mag:Math.round((10+u.level)*scale.atk*pressure.atk*tune.atk),level:u.level,move:m.move,jump:1,dir:2,crit:.02,eva:0,statusAttack:m.status,status:{},acted:true,moved:true};battle.units.push(v);const model=figure(v);model.position.copy(toWorld(t));unitGroup.add(model);models.set(v.id,model);createUnitLabel(v);burst(t,0xbce6d4);log(`${u.name} ${m.name} 소환`);toast(`${u.name}이(가) ${m.name}을 소환했습니다.`);return true;}}
 if(step===4){const allies=alive('ally');const target=save.difficulty==='tactical'?allies.slice().sort((a,b)=>allies.filter(v=>dist(a,v)<=profile.radius).length-allies.filter(v=>dist(b,v)<=profile.radius).length||dist(u,a)-dist(u,b))[0]:allies.sort((a,b)=>dist(u,a)-dist(u,b))[0];if(target){battle.danger=areaTiles(tile(target.x,target.z),{area:profile.radius,heightRange:99}).map(t=>({x:t.x,z:t.z}));refreshHighlights();log(`${u.name} ${profile.finisher} 예고`);toast(save.difficulty==='story'?`${profile.finisher} 예고! 붉은 칸은 다음 적 페이즈에 공격받습니다. 이동해서 피하세요.`:`${profile.finisher} 예고! 붉은 칸에서 벗어나세요.`);sfx('magic');await sleep(450);return true;}}
 if(step===5&&battle.danger.length){sfx('magic');for(const t of battle.danger){burst(tile(t.x,t.z),0xe9a5e7,5);const v=occ(t.x,t.z);if(v?.team==='ally'){const damage=Math.max(1,Math.round(u.mag*profile.power*1.30));const beforeBoss=v.hp;v.hp=Math.max(0,v.hp-damage);floating(v,`${damage}`);log(`${profile.finisher} → ${v.name} ${damage}`);if(v.hp<=0)models.get(v.id).visible=false;}}battle.danger=[];await sleep(600);return true;}return false;}
 // Find a complete legal route to an attack position, then walk its affordable

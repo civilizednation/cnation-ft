@@ -42,6 +42,15 @@ On every change that ships, bump the version and update ALL of:
    move the `현재` tag to it.
 Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
 
+## Balance (v1.3.0)
+- `STAGE_TUNING` in game.js: per stage and difficulty `[hp, atk, enemy count delta, soften]`, shared by story and mission.
+  The enemy per-hit damage cap scales with the stage's atk tuning (when > 1).
+- `MISSION_START_LEVELS`: missions start at the typical story party level of that chapter, so both modes match.
+- Target grades per battle role live in `tools/balance/targets.py` (prologue / chapters 1–8 / final × first / last / other).
+- Re-calibrate after balance-relevant changes: `python3 tools/balance/calibrate.py <work> [iters] [runs]`
+  (Playwright + Chromium; ~15 min per iteration on 4 CPUs), then check with `tools/balance/validate.py <work> 4 <tuning.json>`
+  and copy the tuning into `STAGE_TUNING`. The bot (`tools/balance/bot.js`) plays like an ordinary player.
+
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
 Any new field on save/battle/unit must stay valid under these checks (or update them with migration in `normalizeSave`).
