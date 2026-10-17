@@ -8,8 +8,8 @@
 <style>
 :root{color-scheme:dark;--bg:#0a171e;--card:#122830;--line:#ffffff1c;--ink:#e6eee6;--muted:#94aaa7;--gold:#e7bd70;--mint:#8fe5b4}
 *{box-sizing:border-box}
-@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=2") format("woff2");font-display:swap;size-adjust:118%}
-@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=2") format("woff2");font-display:swap;size-adjust:104%}
+@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=3") format("woff2");font-display:swap;size-adjust:118%}
+@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=3") format("woff2");font-display:swap;size-adjust:104%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Gowun Dodum",-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))}
 main{max-width:680px;margin:0 auto}
 a{color:var(--gold)}
@@ -37,8 +37,18 @@ code{font-size:12px;background:#ffffff12;border-radius:4px;padding:1px 4px}
 <h1>Revision History</h1>
 <p class="lead">버전 규칙: <b>ver.주.부.수</b> — 버그 수정·미세 조정은 마지막 숫자, 기능 추가는 가운데 숫자, 큰 개편은 첫 숫자를 올립니다. 최신 버전이 맨 위에 있습니다.</p>
 
+<section class="rev" id="v1.2.3">
+<h2>ver.1.2.3 <span class="date">2026-10-17</span> <span class="tag">현재</span></h2>
+<h3>변경</h3>
+<ul>
+<li>게임 글꼴의 기본을 「Stylish」로 바꿨습니다. 메뉴 항목, 창 제목(여정 메뉴·백과사전 등), 버튼, 능력치, 스토리 대사, 안내 메시지가 모두 Stylish로 표시됩니다.</li>
+<li>설명 문단, 항목 아래 작은 보조 설명, 각주, 목록·표 설명, 전투 기록 같은 상세 설명만 「고운돋움」을 사용합니다.</li>
+<li>기기 기본 글꼴로 나오던 창 제목과 상단 「cnation」 글자도 게임 글꼴로 바꿔, 이제 게임 안의 모든 글자가 두 글꼴 중 하나로 표시됩니다(이모지 제외).</li>
+</ul>
+</section>
+
 <section class="rev" id="v1.2.2">
-<h2>ver.1.2.2 <span class="date">2026-10-17</span> <span class="tag">현재</span></h2>
+<h2>ver.1.2.2 <span class="date">2026-10-17</span></h2>
 <h3>수정</h3>
 <ul>
 <li>「스토리 이어하기」를 눌러도 진행이 사라지고 처음 상태로 열리던 문제를 수정했습니다. 앱을 켤 때 저장을 확인하는 과정이 오류로 끝나 빈 게임 상태로 시작되던 버그(v0.7.16부터 존재)였습니다. 그 상태로 플레이하면 실제 저장까지 덮어써졌습니다.</li>
