@@ -33,6 +33,12 @@ def initial_tuning():
 tuning_path = os.path.join(WORK, 'tuning.json')
 tuning = json.load(open(tuning_path))['stages'] if os.path.exists(tuning_path) else initial_tuning()
 history = json.load(open(os.path.join(WORK, 'history.json'))) if os.path.exists(os.path.join(WORK, 'history.json')) else []
+state_path = os.path.join(WORK, 'controller.json')
+_state = json.load(open(state_path)) if os.path.exists(state_path) else {}
+gains, last_err = _state.get('gains', {}), _state.get('last_err', {})
+if not last_err and history:
+    from targets import GRADES as _G
+    last_err = {f"{r['id']}:{r['diff']}": r['score'] - _G.index(r['target']) for r in history[-1]['rows']}
 npm_root = subprocess.run(['npm', 'root', '-g'], capture_output=True, text=True).stdout.strip()
 
 def run_job(args):
@@ -74,13 +80,19 @@ for it in range(len(history), len(history) + ITER):
         exact += g == tgt; within += abs(g - tgt) <= 1
         hp, atk, count, soften = tuning[sid][d]
         e = s - tgt  # >0: too hard
+        key = f'{sid}:{d}'
+        prev = last_err.get(key)
+        gain = gains.get(key, 1.0)
+        if prev is not None and prev * e < 0 and abs(prev) > .35 and abs(e) > .35:
+            gain = max(.25, gain * .5)  # error changed direction: halve this battle's step
+        gains[key] = gain; last_err[key] = e
         if abs(e) > .35:
-            step = clamp(e, -3, 3)
+            step = clamp(e, -1.5, 1.5) * gain
             atk = clamp(atk * math.exp(-.2 * step), .4, 2.6)
             hp = clamp(hp * math.exp(-.12 * step), .4, 2.6)
             # Large multipliers make one-shot or bullet-sponge enemies; move to enemy count instead
-            # and pull the multipliers part of the way back toward 1.
-            if (e > .8 and atk < .75 and count > -3) or (e < -.8 and atk > 1.5 and count < 3):
+            # and pull the multipliers part of the way back toward 1. One count step per change.
+            if gain >= .5 and ((e > .8 and atk < .62 and count > -3) or (e < -.8 and atk > 1.8 and count < 3)):
                 count += -1 if e > 0 else 1
                 atk = 1 + (atk - 1) * .6; hp = 1 + (hp - 1) * .6
         tuning[sid][d] = [round(hp, 3), round(atk, 3), count, soften]
@@ -89,6 +101,7 @@ for it in range(len(history), len(history) + ITER):
     history.append(dict(iter=it, exact=exact, within=within, total=total, minutes=round((time.time() - t0) / 60, 1), rows=rows))
     json.dump(history, open(os.path.join(WORK, 'history.json'), 'w'), ensure_ascii=False)
     json.dump({'stages': tuning}, open(tuning_path, 'w'))
+    json.dump({'gains': gains, 'last_err': last_err}, open(state_path, 'w'))
     print(f'iter {it}: exact {exact}/{total}, within±1 {within}/{total}, {history[-1]["minutes"]} min', flush=True)
     if within == total and exact >= .85 * total:
         break
