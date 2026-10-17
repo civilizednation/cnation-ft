@@ -34,14 +34,11 @@ def metrics(runs):
     return dict(first=first, any=anyw, hp=hp, alive=alive, rounds=rounds, n=len(runs))
 
 def grade(m):
+    """Grade = band of the continuous score: <0.5, <1.5, <2.5, <3.5, else very hard; never cleared = 5.
+    (v1.3.0: replaces hard cut-offs, where a single first-try loss in four runs jumped straight to 어려움.)"""
     if m['any'] == 0: return 5
-    if m['first'] < 0.5 or m['hp'] < 20: g = 4
-    elif m['first'] < 1 or m['hp'] < 40 or m['alive'] < 0.75: g = 3
-    elif m['hp'] < 60: g = 2
-    elif m['hp'] < 80 or m['alive'] < 1: g = 1
-    else: g = 0
-    if m['rounds'] >= 20 and g < 4: g += 1
-    return g
+    s = score(m)
+    return 0 if s < .5 else 1 if s < 1.5 else 2 if s < 2.5 else 3 if s < 3.5 else 4
 
 def score(m):
     """Continuous difficulty on the grade scale (0 = very easy ... 5 = impossible)."""
