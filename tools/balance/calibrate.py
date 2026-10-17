@@ -75,11 +75,14 @@ for it in range(len(history), len(history) + ITER):
         hp, atk, count, soften = tuning[sid][d]
         e = s - tgt  # >0: too hard
         if abs(e) > .35:
-            step = clamp(e, -2.5, 2.5) * .75
-            atk = clamp(atk * math.exp(-.16 * step), .45, 2.2)
-            hp = clamp(hp * math.exp(-.11 * step), .45, 2.2)
-            if e > 1 and atk <= .5 and count > -2: count -= 1
-            if e < -1 and atk >= 2.1 and count < 2: count += 1
+            step = clamp(e, -3, 3)
+            atk = clamp(atk * math.exp(-.28 * step), .4, 2.6)
+            hp = clamp(hp * math.exp(-.16 * step), .4, 2.6)
+            # Large multipliers make one-shot or bullet-sponge enemies; move to enemy count instead
+            # and pull the multipliers part of the way back toward 1.
+            if (e > .8 and atk < .75 and count > -3) or (e < -.8 and atk > 1.5 and count < 3):
+                count += -1 if e > 0 else 1
+                atk = 1 + (atk - 1) * .6; hp = 1 + (hp - 1) * .6
         tuning[sid][d] = [round(hp, 3), round(atk, 3), count, soften]
         rows.append(dict(id=sid, diff=d, grade=GRADES[g], target=GRADES[tgt], score=round(s, 2), **{k: round(v, 3) if isinstance(v, float) else v for k, v in m.items()}, tuning=tuning[sid][d]))
     total = len(rows)
