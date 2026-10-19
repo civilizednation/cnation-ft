@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.3.3';
+const GAME_VERSION='1.4.0';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -566,20 +566,28 @@ function showLoading(promise){
 function audibleRange(buffer){const threshold=.004,channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i)),loud=i=>channels.some(c=>Math.abs(c[i])>threshold);let start=0,end=buffer.length;while(start<end&&!loud(start))start++;while(end>start&&!loud(end-1))end--;return {start:start/buffer.sampleRate,end:end/buffer.sampleRate};}
 class BgmFilePlayer{
  constructor(ctx,buffer,volume,loop=true){const range=audibleRange(buffer);this.loop=loop;this.ctx=ctx;this.buffer=buffer;this.volume=volume;this.offset=range.start;this.length=Math.max(1,range.end-range.start);this.fade=Math.min(1.2,this.length/4);this.out=ctx.createGain();this.out.gain.value=0;this.out.connect(ctx.destination);this.sources=new Set();this.timer=0;this.stopped=false;}
- start(){const t=this.ctx.currentTime+.05;this.out.gain.setValueAtTime(0,t);this.out.gain.linearRampToValueAtTime(this.volume,t+(this.loop?.6:.05));this.schedule(t,true);}
- schedule(t,first){
+ // pos: where to start inside the loop (seconds from the audible start), used to resume a track.
+ start(pos=0){if(!(pos>0)||pos>this.length-this.fade-3)pos=0;const t=this.ctx.currentTime+.05;this.anchor=t-pos;this.out.gain.setValueAtTime(0,t);this.out.gain.linearRampToValueAtTime(this.volume,t+(!this.loop?.05:pos?1:.6));this.schedule(t,true,pos);}
+ // Current position inside the loop. Each repeat starts `fade` seconds before the previous one ends.
+ position(){const period=Math.max(.1,this.length-this.fade);return ((this.ctx.currentTime-this.anchor)%period+period)%period;}
+ schedule(t,first,pos=0){
   if(this.stopped)return;
-  const src=this.ctx.createBufferSource(),g=this.ctx.createGain(),f=this.fade,end=t+this.length,next=end-f;
+  const src=this.ctx.createBufferSource(),g=this.ctx.createGain(),f=this.fade,end=t+this.length-pos,next=end-f;
   src.buffer=this.buffer;src.connect(g);g.connect(this.out);
   g.gain.setValueAtTime(first?1:0,t);if(!first)g.gain.linearRampToValueAtTime(1,t+f);if(this.loop){g.gain.setValueAtTime(1,next);g.gain.linearRampToValueAtTime(0,end);}
-  src.onended=()=>{this.sources.delete(src);src.disconnect();g.disconnect();};src.start(t,this.offset,this.length);this.sources.add(src);
+  src.onended=()=>{this.sources.delete(src);src.disconnect();g.disconnect();};src.start(t,this.offset+pos,this.length-pos);this.sources.add(src);
   if(!this.loop)return;
   this.timer=setTimeout(()=>this.schedule(next,false),Math.max(0,(next-this.ctx.currentTime-2)*1000));
  }
  setVolume(v){this.volume=v;if(this.stopped)return;const t=this.ctx.currentTime,gain=this.out.gain;gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(v,t+.2);}
  stop(){this.stopped=true;clearTimeout(this.timer);const t=this.ctx.currentTime,gain=this.out.gain,sources=[...this.sources];gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(0,t+.4);setTimeout(()=>{for(const src of sources)try{src.stop();}catch{}this.out.disconnect();},500);}
 }
-function stopBgmPlayback(){bgmGeneration++;soundtrack?.stop();filePlayer?.stop();filePlayer=null;bgm?.pause();bgm=null;activeBgmKey='';}
+// v1.4.0: the non-battle track (title) continues where it stopped when a battle (or muting / leaving
+// the app) interrupted it, so players hear the whole track, not only its opening. Kept in memory only:
+// a fresh start of the app begins the track from the top.
+const bgmResume=new Map();
+function rememberBgmPosition(){if(filePlayer?.resumeKey&&!filePlayer.stopped)bgmResume.set(filePlayer.resumeKey,filePlayer.position());else if(bgm?.resumeKey&&bgm.loop&&Number.isFinite(bgm.currentTime))bgmResume.set(bgm.resumeKey,bgm.currentTime);}
+function stopBgmPlayback(){rememberBgmPosition();bgmGeneration++;soundtrack?.stop();filePlayer?.stop();filePlayer=null;bgm?.pause();bgm=null;activeBgmKey='';}
 function syncBgm(){
  if(!playingBgm||!audioCtx||!save.settings.sound||document.hidden){stopBgmPlayback();return;}
  const id=bgmTrackFor(playingBgm),url=window.TACTICS_BGM?.[id]||window.TACTICS_BGM?.[playingBgm],key=url?'file:'+url:'web:'+id;
@@ -590,10 +598,10 @@ function syncBgm(){
  const procedural=()=>{soundtrack??=new TacticsSoundtrackEngine(audioCtx);soundtrack.setVolume(.75*bgmGain());soundtrack.play(id).catch(e=>{if(current()){activeBgmKey='';bgmError=e.message;}});};
  // File playback: Web Audio (gapless loop) -> <audio> element loop -> procedural music.
  if(url){
-  const ctx=audioCtx,element=()=>{if(!current())return;bgm=new Audio(url);bgm.loop=id!==VICTORY_BGM_TRACK;bgm.volume=bgmGain();bgm.play().catch(e=>{if(!current())return;bgm=null;bgmError=e.message;procedural();});};
+  const ctx=audioCtx,resumeKey=BATTLE_BGM_TRACKS.includes(id)||id===VICTORY_BGM_TRACK?'':url,element=()=>{if(!current())return;bgm=new Audio(url);bgm.loop=id!==VICTORY_BGM_TRACK;bgm.volume=bgmGain();bgm.resumeKey=resumeKey;const at=bgmResume.get(resumeKey);if(resumeKey&&at>0)bgm.addEventListener('loadedmetadata',()=>{if(at<bgm.duration-5)bgm.currentTime=at;},{once:true});bgm.play().catch(e=>{if(!current())return;bgm=null;bgmError=e.message;procedural();});};
   if(failedBgm.has(url)){element();return;}
   const load=loadBgm(url);if(!loadedBgm.has(url)&&id!==VICTORY_BGM_TRACK)showLoading(load);
-  load.then(buffer=>{if(!current())return;filePlayer=new BgmFilePlayer(ctx,buffer,bgmGain(),id!==VICTORY_BGM_TRACK);filePlayer.start();}).catch(element);return;}
+  load.then(buffer=>{if(!current())return;filePlayer=new BgmFilePlayer(ctx,buffer,bgmGain(),id!==VICTORY_BGM_TRACK);filePlayer.resumeKey=resumeKey;filePlayer.start(resumeKey?bgmResume.get(resumeKey)||0:0);}).catch(element);return;}
  procedural();
 }
 

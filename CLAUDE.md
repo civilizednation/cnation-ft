@@ -30,6 +30,8 @@ Always write every message to the user in Korean (한국어) — progress update
   loaded yet shows the loading notice. Tracks are decoded at 32 kHz with
   Web Audio, kept in memory (`bgmBuffers`), and looped with a crossfade (`BgmFilePlayer`). Fallbacks:
   `<audio>` loop, then procedural music (`TacticsSoundtrackEngine`). Volume: `save.settings.bgmVolume` (default .5); actual output gain is `bgmGain()` = setting × `BGM_OUTPUT_SCALE` (.5).
+  The non-battle track resumes where it was interrupted (`bgmResume`, in memory only; `BgmFilePlayer.start(pos)`/`position()`);
+  battle and victory tracks always start from the top.
   sw.js caches bgm files cache-first.
 
 ## Revision management (required for every change)
