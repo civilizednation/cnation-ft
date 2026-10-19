@@ -8,8 +8,8 @@
 <style>
 :root{color-scheme:dark;--bg:#0a171e;--card:#122830;--line:#ffffff1c;--ink:#e6eee6;--muted:#94aaa7;--gold:#e7bd70;--mint:#8fe5b4}
 *{box-sizing:border-box}
-@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=7") format("woff2");font-display:swap;size-adjust:118%}
-@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=7") format("woff2");font-display:swap;size-adjust:104%}
+@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=8") format("woff2");font-display:swap;size-adjust:118%}
+@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=8") format("woff2");font-display:swap;size-adjust:104%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Gowun Dodum",-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))}
 main{max-width:680px;margin:0 auto}
 a{color:var(--gold)}
@@ -37,8 +37,13 @@ code{font-size:12px;background:#ffffff12;border-radius:4px;padding:1px 4px}
 <h1>Revision History</h1>
 <p class="lead">버전 규칙: <b>ver.주.부.수</b> — 버그 수정·미세 조정은 마지막 숫자, 기능 추가는 가운데 숫자, 큰 개편은 첫 숫자를 올립니다. 최신 버전이 맨 위에 있습니다.</p>
 
+<section class="rev" id="v1.5.0">
+<h2>ver.1.5.0 <span class="date">2026-10-20</span> <span class="tag">현재</span></h2>
+<h3>추가</h3><ul><li>스토리 모드 엔딩 — 최종 보스 처치 후 엔딩 전용 음악(12번 「Where Our Journey Ends」)에 맞춰 오프닝, 프롤로그~FINAL 챕터 회상, 에필로그, 「여정의 기록」 통계, 크레딧(제작 cnation(문명국)·연락처·OST 링크), FIN 순서로 진행. 화면을 탭하면 「건너뛰기」 표시</li><li>여정 통계 집계 — 전투·승리·패배·철수 수, 총 턴, 처치한 몬스터·보스, 총 피해량, 최대 한 방, 크리티컬, 회복량, 회복약 사용, 쓰러진 동료, 획득 골드·장비, 플레이 시간, 영웅별 MVP. 저장 데이터에 함께 저장되어 이어하기·수동 저장·내보내기에도 누적되고, 패배·철수로 되돌려도 기록은 남음. 기존 저장 데이터는 이번 버전부터 집계</li><li>챕터별 마지막 전투의 첫 클리어 기록(턴 수·MVP·날짜)을 저장해 엔딩 회상 화면에 표시</li><li>설정 메뉴 맨 아래 「엔딩 화면 (테스트용)」 — 예시 수치 또는 내 실제 기록으로, 처음부터·챕터 회상·여정의 기록·크레딧 중 원하는 위치부터 미리 보기</li></ul>
+<h3>변경</h3><ul><li>엔딩 음악은 최종 전투가 시작될 때 미리 불러옴</li></ul>
+</section>
 <section class="rev" id="v1.4.1">
-<h2>ver.1.4.1 <span class="date">2026-10-19</span> <span class="tag">현재</span></h2>
+<h2>ver.1.4.1 <span class="date">2026-10-19</span></h2>
 <h3>수정</h3><ul><li>타이틀 화면의 「rev. history」를 누르면 게임 페이지를 떠나 배경음악이 끊기고, 돌아올 때 게임 데이터와 음악을 다시 불러오며 타이틀 음악이 처음부터 재생되던 문제 수정 — 이제 수정 기록이 게임 화면 위에 열리고, 「×」나 「게임으로 돌아가기」로 닫으면 음악이 끊김 없이 이어짐</li></ul>
 </section>
 <section class="rev" id="v1.4.0">
