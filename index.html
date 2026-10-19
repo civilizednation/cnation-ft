@@ -33,6 +33,65 @@
 #app.title-active .viewtools,#app.title-active .legend{display:none}
 #app.title-active #title .version{bottom:calc(11px + env(safe-area-inset-bottom));font-size:10px;letter-spacing:.6px}
 #loadingNotice{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#0a171ecc;color:#e6eee6;font-size:14px;letter-spacing:.3px}#loadingNotice[hidden]{display:none}#loadingNotice>div{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;background:#122830;border:1px solid #ffffff1c}.loading-spinner{width:16px;height:16px;border-radius:50%;border:2px solid #e7bd7055;border-top-color:#e7bd70;animation:loading-spin .8s linear infinite}@keyframes loading-spin{to{transform:rotate(360deg)}}
+#endingView{position:absolute;inset:0;z-index:45;background:#060f15;color:#f3ecd9;overflow:hidden;font-family:var(--font-display)}
+#endingView .ed-stage{position:absolute;inset:0;overflow:auto;scrollbar-width:none}
+#endingView .ed-skip{position:absolute;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:3;background:#0d222bd9;color:#f3ecd9;border:1px solid #ffffff40;border-radius:999px;padding:9px 16px;font-size:13px}
+#endingView .ed-eyebrow{font-size:11px;letter-spacing:3px;color:#e7bd70;text-transform:uppercase}
+#endingView .ed-out{opacity:0!important;transition:opacity .8s ease}
+#endingView .ed-flash{position:absolute;inset:0;background:#fff;animation:edFlash 1.6s ease-out forwards;pointer-events:none}
+@keyframes edFlash{from{opacity:1}to{opacity:0}}
+#endingView .ed-title{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;animation:edRise 2.4s ease .9s both;transition:opacity .8s}
+#endingView .ed-title h1{font-size:34px;letter-spacing:4px;margin:10px 0;color:#fff4d8;text-shadow:0 0 24px #e7bd7088}
+#endingView .ed-title p{color:#b7c9c1;font-size:14px;letter-spacing:2px}
+@keyframes edRise{from{opacity:0;transform:scale(1.08);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+#endingView .ed-recap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 30%,var(--sky),var(--land) 55%,#060f15 100%);animation:edBg 3.6s ease both}
+@keyframes edBg{from{filter:brightness(.4)}to{filter:none}}
+#endingView .ed-card{width:100%;max-width:360px;text-align:center;background:#06131acc;border:1px solid #ffffff2a;border-radius:16px;padding:22px 18px;box-shadow:0 20px 60px #0008;animation:edCard .9s cubic-bezier(.2,.8,.2,1) both;transition:opacity .5s}
+@keyframes edCard{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:none}}
+#endingView .ed-card h2{font-size:30px;margin:6px 0 2px;color:#fff4d8}
+#endingView .ed-place{font-size:13px;color:var(--accent);letter-spacing:1px}
+#endingView .ed-card blockquote{margin:16px 0 12px;font-size:15px;line-height:1.6;color:#e6eee6}
+#endingView .ed-card blockquote b{display:block;font-size:12px;color:#e7bd70;margin-bottom:3px}
+#endingView .ed-party{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+#endingView .ed-party span{display:inline-flex;flex-direction:column;align-items:center;min-width:42px;padding:5px 4px;border-radius:8px;background:#ffffff14;font-size:18px}
+#endingView .ed-party small{font-size:10px;color:#c9d6cf;margin-top:2px}
+#endingView .ed-record{margin-top:12px;font-size:12px;color:#8fe5b4;letter-spacing:.5px}
+#endingView .ed-epilogue{min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:22px;padding:40px 28px;background:linear-gradient(#0b1d27,#2a3c3a 70%,#6b5a3a);transition:opacity .8s}
+#endingView .ed-line{opacity:0;transform:translateY(10px);transition:opacity 1.2s,transform 1.2s;font-size:17px;line-height:1.7;margin:0;font-family:var(--font-display)}
+#endingView .ed-line b{display:block;font-size:13px;color:#e7bd70}
+#endingView .ed-line.ed-in{opacity:1;transform:none}
+#endingView .ed-narration{font-size:15px;color:#d8e2d6;text-align:center}
+#endingView .ed-stats{padding:calc(26px + env(safe-area-inset-top)) 16px 70px;text-align:center;transition:opacity .8s}
+#endingView .ed-stats h2{font-size:28px;margin:4px 0 4px}
+#endingView .ed-sample{display:inline-block;font-size:11px;color:#10232a;background:#e7bd70;border-radius:999px;padding:1px 9px;margin-bottom:6px}
+#endingView .ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;text-align:left}
+#endingView .ed-stat{background:#ffffff0f;border:1px solid #ffffff1c;border-radius:9px;padding:7px 10px;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
+#endingView .ed-stat.ed-in,#endingView .ed-levels.ed-in,#endingView .ed-ace.ed-in{opacity:1;transform:none}
+#endingView .ed-stat span{display:block;font-size:11px;color:#9fb4ac}
+#endingView .ed-stat b{font-size:19px;color:#fff4d8;font-weight:400}
+#endingView .ed-stat i{font-style:normal;font-size:11px;color:#c9d6cf;margin-left:4px}
+#endingView .ed-wide{grid-column:1/-1}
+#endingView .ed-levels{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:12px;opacity:0;transition:opacity .6s}
+#endingView .ed-levels span{font-size:12px;background:#ffffff12;border-radius:6px;padding:4px 7px}
+#endingView .ed-levels b{font-weight:400;color:#8fe5b4;margin-left:4px}
+#endingView .ed-ace{margin-top:16px;padding:14px;border-radius:14px;background:radial-gradient(ellipse at 50% 0,#e7bd7040,#ffffff08 70%);border:1px solid #e7bd7066;opacity:0;transform:scale(.95);transition:opacity .8s,transform .8s}
+#endingView .ed-ace-icon{font-size:40px;margin:4px 0}
+#endingView .ed-ace h3{margin:2px 0;font-size:20px;font-weight:400;color:#fff4d8}
+#endingView .ed-ace p{margin:2px 0 0;font-size:12px;color:#c9d6cf}
+#endingView .ed-credits{position:absolute;inset:0;overflow:hidden;background:linear-gradient(#060f15,#0b1d27 50%,#060f15);transition:opacity .6s}
+#endingView .ed-roll{position:absolute;left:0;right:0;top:100%;text-align:center;padding:0 24px;animation:edRoll 42s linear forwards}
+@keyframes edRoll{to{transform:translateY(calc(-100% - 100vh))}}
+#endingView .ed-roll h2{font-size:28px;margin:6px 0 40px}
+#endingView .ed-role{margin:30px 0 6px;font-size:12px;letter-spacing:2px;color:#e7bd70;font-family:var(--font-display)}
+#endingView .ed-name{margin:4px 0;font-size:18px;font-family:var(--font-display)}
+#endingView .ed-name small{font-size:12px;color:#9fb4ac}
+#endingView a{color:#8fe5b4}
+#endingView .ed-thanks{margin:70px 0 40px;font-size:20px;color:#fff4d8;font-family:var(--font-display)}
+#endingView .ed-fin{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 28px calc(30px + env(safe-area-inset-bottom));animation:edRise 1.6s ease both}
+#endingView .ed-fin h1{font-size:64px;letter-spacing:10px;margin:8px 0;color:#fff4d8;font-weight:400}
+#endingView .ed-fin p{color:#c9d6cf;font-size:14px}
+#endingView .ed-links{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin:14px 0 18px;font-size:13px}
+#endingView .ed-fin button{max-width:300px}
 #revisionsView{position:absolute;inset:0;z-index:40;background:#0a171e}#revisionsView iframe{width:100%;height:100%;border:0;display:block;background:#0a171e}#revisionsView #closeRevisions{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;background:#122830e6;color:#e6eee6;border-color:#ffffff33}
 #continue .save-summary{display:block;margin-top:3px;font-family:var(--font-body);font-size:12px;font-weight:700;letter-spacing:0;-webkit-text-stroke:0;color:#3b2f17;opacity:1}
 #title .version a{pointer-events:auto;color:inherit;text-decoration:underline;text-underline-offset:2px;padding:6px 2px}
@@ -109,14 +168,14 @@
 #panel .enemy-details{margin:5px 0;font-size:11px;line-height:1.4;gap:2px}
 #panel .turnrow{margin-top:5px;justify-content:flex-end}#panel .turnrow .endturn{min-height:44px;padding:6px 12px;font-size:12px}
 </style>
-<link rel="preload" href="fonts/stylish.woff2?v=7" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/gowun-dodum.woff2?v=7" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/stylish.woff2?v=8" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/gowun-dodum.woff2?v=8" as="font" type="font/woff2" crossorigin>
 <style>
 /* v1.2.0: game fonts. Stylish for large display text (titles, headings, buttons),
    Gowun Dodum for body text. size-adjust matches their Hangul height to the previous
    system font (Stylish glyphs are ~18% smaller per em). Both are subset to the game's characters (tools/subset-fonts.py). */
-@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=7") format("woff2");font-weight:400;font-style:normal;font-display:swap;size-adjust:118%}
-@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=7") format("woff2");font-weight:400;font-style:normal;font-display:swap;size-adjust:104%}
+@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=8") format("woff2");font-weight:400;font-style:normal;font-display:swap;size-adjust:118%}
+@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=8") format("woff2");font-weight:400;font-style:normal;font-display:swap;size-adjust:104%}
 :root{--font-body:"Gowun Dodum",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;--font-display:"Stylish","Gowun Dodum",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
 /* v1.2.3: Stylish is the default; only detailed description text uses Gowun Dodum. */
 body,button,input,select,textarea{font-family:var(--font-display);font-weight:400;font-synthesis:none;-webkit-text-stroke:.3px currentColor}
@@ -130,7 +189,7 @@ p,li,td,small,.footnote,.battlelog,.sheet p,.codex-card p,.skill-detail p,.recov
 p b,p strong,li b,li strong,td b,td strong{font-weight:700}
 /* Story dialogue and announcements are not descriptions: keep them in Stylish. */
 #sheet .story-bubble p,#sheet .dialogue p,#sheet .join-notice p{font-family:var(--font-display);-webkit-text-stroke:.3px currentColor}
-</style></head><body><main id="app" class="title-active"><header><div><div class="eyebrow">THE ARCA CHRONICLE</div><div class="brand"><small>cnation</small> TACTICS</div></div><div class="toolbar"><button id="sound" class="iconbtn" aria-label="효과음 켜기 또는 끄기">♪</button><button id="menu" class="iconbtn" aria-label="메뉴">☰</button></div></header><section class="viewport" id="viewport"><canvas id="canvas" aria-label="3D 전장. 캐릭터와 타일을 탭하세요."></canvas><div id="labels"></div><div class="stagebar" id="stagebar"><div><div class="tag" id="chapterlabel"></div><h2 id="stagetitle"></h2><div class="objective" id="objective"></div></div><div class="pill" id="turn"></div></div><div class="viewtools"><button id="rotate" class="iconbtn" aria-label="시점 90도 회전">↻</button><button id="zoomIn" class="iconbtn" aria-label="확대">＋</button><button id="zoomOut" class="iconbtn" aria-label="축소">−</button><button id="resetCam" class="iconbtn" aria-label="시점 초기화">◎</button></div><div class="legend"><span>아군</span><span>적군</span><em>드래그 이동 · 두 손가락 확대</em></div><div id="banner"></div><div id="criticalNotice" hidden>Critical !!</div></section><section class="panel" id="panel"></section><div id="title" class="title-screen"><div class="logo"><div class="cn">cnation</div><h1>TACTICS</h1><div class="sub">THE ARCA CHRONICLE</div></div><div class="title-bottom"><p style="font-size:13px;color:#c6d5c7;line-height:1.8">잠든 코어가 깨어났다.<br>여섯 영웅의 여정이 시작된다.</p><button id="continue" class="primary">스토리 이어하기</button><button id="newGame" class="secondary">📖 스토리 모드 · 새 게임</button><button id="missionGameBtn" class="secondary">⚔️ 미션 모드</button><button id="encyclopediaBtn" class="secondary">백과사전</button><small>3D TACTICAL RPG · 아르카 연대기</small></div><div class="version">ver.1.4.1 (<a href="revisions.html">rev. history</a>)</div></div><div id="overlay" class="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div><div id="toast" role="status"></div><input type="file" id="import" class="fileinput" accept="application/json,.json"></main><script>
+</style></head><body><main id="app" class="title-active"><header><div><div class="eyebrow">THE ARCA CHRONICLE</div><div class="brand"><small>cnation</small> TACTICS</div></div><div class="toolbar"><button id="sound" class="iconbtn" aria-label="효과음 켜기 또는 끄기">♪</button><button id="menu" class="iconbtn" aria-label="메뉴">☰</button></div></header><section class="viewport" id="viewport"><canvas id="canvas" aria-label="3D 전장. 캐릭터와 타일을 탭하세요."></canvas><div id="labels"></div><div class="stagebar" id="stagebar"><div><div class="tag" id="chapterlabel"></div><h2 id="stagetitle"></h2><div class="objective" id="objective"></div></div><div class="pill" id="turn"></div></div><div class="viewtools"><button id="rotate" class="iconbtn" aria-label="시점 90도 회전">↻</button><button id="zoomIn" class="iconbtn" aria-label="확대">＋</button><button id="zoomOut" class="iconbtn" aria-label="축소">−</button><button id="resetCam" class="iconbtn" aria-label="시점 초기화">◎</button></div><div class="legend"><span>아군</span><span>적군</span><em>드래그 이동 · 두 손가락 확대</em></div><div id="banner"></div><div id="criticalNotice" hidden>Critical !!</div></section><section class="panel" id="panel"></section><div id="title" class="title-screen"><div class="logo"><div class="cn">cnation</div><h1>TACTICS</h1><div class="sub">THE ARCA CHRONICLE</div></div><div class="title-bottom"><p style="font-size:13px;color:#c6d5c7;line-height:1.8">잠든 코어가 깨어났다.<br>여섯 영웅의 여정이 시작된다.</p><button id="continue" class="primary">스토리 이어하기</button><button id="newGame" class="secondary">📖 스토리 모드 · 새 게임</button><button id="missionGameBtn" class="secondary">⚔️ 미션 모드</button><button id="encyclopediaBtn" class="secondary">백과사전</button><small>3D TACTICAL RPG · 아르카 연대기</small></div><div class="version">ver.1.5.0 (<a href="revisions.html">rev. history</a>)</div></div><div id="overlay" class="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div><div id="toast" role="status"></div><input type="file" id="import" class="fileinput" accept="application/json,.json"></main><script>
 // Uniform tablet scaling. Recompute when rotating or when browser bars change height.
 (()=>{
  const root=document.documentElement,tablet=window.matchMedia('(min-width:600px)');
@@ -159,6 +218,7 @@ window.TACTICS_BGM={
  5:"bgm/05. March of the Broken Banner_64k.webm",
  6:"bgm/06. When Kingdoms Fall_64k.webm",
  7:"bgm/07. Awakened Colossus_64k.webm",
- 10:"bgm/10. Raise the Banner_64k.webm"
+ 10:"bgm/10. Raise the Banner_64k.webm",
+ 12:"bgm/12. Where Our Journey Ends_64k.webm"
 };
-</script><script>window.TACTICS_BUILD="1.4.1";</script><script defer src="vendor/three-r170.js?v=r170"></script><script defer src="game.js?v=1.4.1"></script><script>window.addEventListener('load',()=>{if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});setTimeout(()=>{if(!window.TACTICS_READY){const e=document.getElementById('toast');e.textContent='게임을 불러오지 못했습니다. game.js 파일과 WebGL 지원 여부를 확인하세요.';e.classList.add('show')}},10000)});</script></body></html>
+</script><script>window.TACTICS_BUILD="1.5.0";</script><script defer src="vendor/three-r170.js?v=r170"></script><script defer src="game.js?v=1.5.0"></script><script>window.addEventListener('load',()=>{if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});setTimeout(()=>{if(!window.TACTICS_READY){const e=document.getElementById('toast');e.textContent='게임을 불러오지 못했습니다. game.js 파일과 WebGL 지원 여부를 확인하세요.';e.classList.add('show')}},10000)});</script></body></html>

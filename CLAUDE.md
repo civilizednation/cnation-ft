@@ -32,6 +32,7 @@ Always write every message to the user in Korean (한국어) — progress update
   `<audio>` loop, then procedural music (`TacticsSoundtrackEngine`). Volume: `save.settings.bgmVolume` (default .5); actual output gain is `bgmGain()` = setting × `BGM_OUTPUT_SCALE` (.5).
   The non-battle track resumes where it was interrupted (`bgmResume`, in memory only; `BgmFilePlayer.start(pos)`/`position()`);
   battle and victory tracks always start from the top.
+  The story ending plays track 12 (`ENDING_BGM_TRACK`), preloaded when the final battle (c9s2) starts.
   sw.js caches bgm files cache-first.
 
 ## Revision management (required for every change)
@@ -52,6 +53,14 @@ Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
 - Re-calibrate after balance-relevant changes: `python3 tools/balance/calibrate.py <work> [iters] [runs]`
   (Playwright + Chromium; ~15 min per iteration on 4 CPUs), then check with `tools/balance/validate.py <work> 4 <tuning.json>`
   and copy the tuning into `STAGE_TUNING`. The bot (`tools/balance/bot.js`) plays like an ordinary player.
+
+## Ending & statistics (v1.5.0)
+`runEnding()` shows the story ending (opening → recap → epilogue → stats → credits → FIN) in `#endingView`;
+`showEndingTest()` (settings menu, bottom) previews it with sample data (`sampleEndingData`) or the current save.
+Stage 2 (planned): scripted 3D battle scenes behind the recap cards.
+`save.stats` (totals) and `save.chronicle` (first clear of each chapter's last battle) are normalized in `normalizeStats`.
+Each battle collects `battle.tally` and adds it to `save.stats` exactly once in `recordBattleStats` (finishBattle / retreat;
+`battle.tallied` guards it). Retry/retreat restore never touches `save.stats`.
 
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
