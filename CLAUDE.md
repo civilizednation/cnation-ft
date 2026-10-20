@@ -76,7 +76,9 @@ Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
 
 ## Ending & statistics (v1.4.0)
 `runEnding()` shows the story ending (opening → recap → epilogue → stats → credits → FIN) in `#endingView`;
-`showEndingTest()` (settings menu, bottom) previews it with sample data (`sampleEndingData`) or the current save.
+`showEndingTest()` previews it with sample data (`sampleEndingData`) or the current save. It is owner-only and hidden:
+an invisible tap area at the very bottom of the settings sheet (`#endingTest.dev-spot`). Never show or mention it to players,
+including in revisions.html.
 The recap shows each chapter's battle (`createEndingTheater`: own WebGL renderer, chapter's last battle via `makeBattle(stage, stage.seed)`,
 scripted with the game's attack animations through a ctx) above its record card; the chapter MVP lands the last blow.
 `save.chronicle[stageId]` also keeps `seed` (battle.mapSeed), `last` (boss kill / last kill) and `top` (biggest hit) as

@@ -65,6 +65,8 @@ html.phone-landscape #rotateNotice{display:flex;position:fixed;inset:0;z-index:1
 #rotateNotice b{font-size:20px;font-weight:400}#rotateNotice small{font-size:13px;color:#9fb4ac}
 @keyframes rotateHint{0%,30%{transform:rotate(90deg)}60%,100%{transform:rotate(0)}}
 /* Keyboard (PC): small key hints instead of touch hints; number keys on skills. */
+/* Invisible owner-only tap area (settings, bottom). */
+.dev-spot{display:block;width:100%;height:56px;margin-top:10px;padding:0;background:transparent;border:0;opacity:0;cursor:default}
 .legend .kb-hint,.skill-key{display:none}
 html.has-keyboard .legend .touch-hint{display:none}
 html.has-keyboard .legend .kb-hint{display:inline;font-size:10px;opacity:.45;letter-spacing:0}
@@ -321,4 +323,4 @@ window.TACTICS_BGM={
  10:"bgm/10. Raise the Banner_64k.webm",
  12:"bgm/12. Where Our Journey Ends_64k.webm"
 };
-</script><script>window.TACTICS_BUILD="1.5.1";</script><script defer src="vendor/three-r170.js?v=r170"></script><script defer src="game.js?v=1.5.1"></script><script>window.addEventListener('load',()=>{if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});setTimeout(()=>{if(!window.TACTICS_READY){const e=document.getElementById('toast');e.textContent='게임을 불러오지 못했습니다. game.js 파일과 WebGL 지원 여부를 확인하세요.';e.classList.add('show')}},10000)});</script></body></html>
+</script><script>window.TACTICS_BUILD="1.5.1";</script><script defer src="vendor/three-r170.js?v=r170"></script><script defer src="game.js?v=1.5.1-b"></script><script>window.addEventListener('load',()=>{if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});setTimeout(()=>{if(!window.TACTICS_READY){const e=document.getElementById('toast');e.textContent='게임을 불러오지 못했습니다. game.js 파일과 WebGL 지원 여부를 확인하세요.';e.classList.add('show')}},10000)});</script></body></html>
