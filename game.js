@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.7.1';
+const GAME_VERSION='1.4.3';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -258,7 +258,7 @@ function repairPickups(b){
 // ReferenceError that made every saved game look invalid at startup (continue opened a blank game).
 const HERO_LEVEL_CAP=40,LEGACY_HERO_LEVEL_CAP=50;
 function normalizeSave(s){for(const p of s.party||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}for(const p of s.retryParty||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}s.skippedSides??=[];s.consumables??={hpSmall:0,hpMedium:s.potions||0,hpLarge:0,mpSmall:0,mpLarge:0};for(const side of STAGES.filter(v=>v.kind==='side'&&!s.completed.includes(v.id))){const next=`c${side.chapter}s${side.n+1}`;if((s.completed.includes(next)||s.battle?.stageId===next||s.retry?.stageId===next)&&!s.skippedSides.includes(side.id))s.skippedSides.push(side.id);}s.inventory??=[];s.lootSeq=Math.max(Number.isSafeInteger(s.lootSeq)?s.lootSeq:0,...s.inventory.map(v=>Number(v.uid.slice(5))));const seq={value:s.lootSeq};for(const p of s.party)migrateLegacyGear(p,s.inventory,seq);s.lootSeq=seq.value;if(s.retry){s.retryGold??=s.gold;s.retryInventory??=copy(s.inventory);s.retryConsumables??={hpSmall:0,hpMedium:s.retryPotions??s.potions??0,hpLarge:0,mpSmall:0,mpLarge:0};s.retryLootSeq=Math.max(Number.isSafeInteger(s.retryLootSeq)?s.retryLootSeq:0,...s.retryInventory.map(v=>Number(v.uid.slice(5))));const retrySeq={value:s.retryLootSeq};for(const p of s.retryParty||[])migrateLegacyGear(p,s.retryInventory,retrySeq);s.retryLootSeq=retrySeq.value;}for(const b of [s.battle,s.retry])if(b){if(s.completed.includes(b.stageId)&&!b.rewarded){b.replay=true;b.pickups=[];if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}}else if(!b.pickups)b.pickups=makePickups(b,STAGES.find(v=>v.id===b.stageId));else repairPickups(b);const party=b===s.retry?(s.retryParty||s.party):s.party,inventory=b===s.retry?(s.retryInventory||s.inventory):s.inventory;for(const u of b.units||[])if(u.team==='ally'){const record=party.find(p=>p.id===u.heroId);if(record){u.crit=equipmentCriticalRate(record,inventory);if(isPhysicalHero(u)){u.maxMp=physicalMaxMP(record,inventory);u.mp=Math.min(u.mp,u.maxMp);}}}}normalizeStats(s);return s;}
-// v1.5.0: journey statistics for the ending. save.stats holds the running totals; each battle collects its own
+// v1.4.0: journey statistics for the ending. save.stats holds the running totals; each battle collects its own
 // numbers in battle.tally (saved with the battle, so a resumed battle keeps them) and adds them to save.stats
 // exactly once when it ends (battle.tallied). Retry/retreat restore does not touch save.stats, so losses stay counted.
 // save.chronicle keeps the first clear of each chapter's last battle (turns, MVP, date) for the ending recap.
@@ -267,7 +267,7 @@ function validHitRecord(h){return h&&Number.isFinite(h.v)&&h.v>=0&&HEROES.some(x
 function ensureStats(){if(!save.stats||!save.chronicle)normalizeStats(save);return save.stats;}
 function battleTally(){if(!battle)return null;battle.tally??={damage:0,crits:0,healed:0,potions:0,maxHit:null,by:{}};return battle.tally;}
 function skillIdOf(s){return Object.keys(SKILLS).find(k=>SKILLS[k]===s)||Object.keys(SKILLS).find(k=>SKILLS[k].name===s?.name)||null;}
-// v1.7.0: besides the totals, remember the battle's biggest hit and its last blow (the boss kill, else the last
+// v1.4.2: besides the totals, remember the battle's biggest hit and its last blow (the boss kill, else the last
 // kill) with the skill used, so the ending can replay them.
 function tallyHit(u,v,damage,dealt,crit,s){if(u?.team!=='ally'||!u.heroId)return;const t=battleTally();if(!t)return;t.damage+=dealt;if(crit)t.crits++;t.by[u.heroId]=(t.by[u.heroId]||0)+dealt;const hit={v:damage,hero:u.heroId,skill:s.name,skillId:skillIdOf(s),crit:!!crit};if(!t.maxHit||damage>t.maxHit.v)t.maxHit=hit;if(v?.team==='enemy'&&v.hp<=0){t.lastKill=hit;if(v.boss)t.bossKill=hit;}}
 function tallyHeal(u,amount){if(u?.team!=='ally'||!u.heroId||!(amount>0))return;const t=battleTally();if(!t)return;t.healed+=amount;t.by[u.heroId]=(t.by[u.heroId]||0)+amount;}
@@ -555,7 +555,7 @@ function preloadBgm(id){
 function preloadUpcomingBgm(){preloadBgm(VICTORY_BGM_TRACK);if(battle?.stageId==='c9s2'&&!missionMode)preloadBgm(ENDING_BGM_TRACK);preloadBgm(upcomingBattleBgm());}
 // v1.1.2: every victory plays track 10 once. It is preloaded when a battle starts.
 const VICTORY_BGM_TRACK=10;
-// v1.5.0: the story ending plays track 12. It is preloaded when the final battle starts.
+// v1.4.0: the story ending plays track 12. It is preloaded when the final battle starts.
 const ENDING_BGM_TRACK=12;
 function bgmTrackFor(type){return type==='battle'||type==='boss'?battleBgmTrack():type==='victory'?VICTORY_BGM_TRACK:type==='ending'?ENDING_BGM_TRACK:1;}
 // Soundtrack files are decoded once and kept in memory for reuse: track 1 at startup,
@@ -601,7 +601,7 @@ class BgmFilePlayer{
  setVolume(v){this.volume=v;if(this.stopped)return;const t=this.ctx.currentTime,gain=this.out.gain;gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(v,t+.2);}
  stop(){this.stopped=true;clearTimeout(this.timer);const t=this.ctx.currentTime,gain=this.out.gain,sources=[...this.sources];gain.cancelScheduledValues(t);gain.setValueAtTime(gain.value,t);gain.linearRampToValueAtTime(0,t+.4);setTimeout(()=>{for(const src of sources)try{src.stop();}catch{}this.out.disconnect();},500);}
 }
-// v1.4.0: the non-battle track (title) continues where it stopped when a battle (or muting / leaving
+// v1.3.4: the non-battle track (title) continues where it stopped when a battle (or muting / leaving
 // the app) interrupted it, so players hear the whole track, not only its opening. Kept in memory only:
 // a fresh start of the app begins the track from the top.
 const bgmResume=new Map();
@@ -626,7 +626,7 @@ function syncBgm(){
 
 function unlockAudio(){if(!audioCtx)try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch{}audioCtx?.resume().then(()=>syncBgm()).catch(()=>{});}
 function spellSound(element,impact=false){if(!save.settings.sound)return;unlockAudio();if(!audioCtx)return;const ctx=audioCtx,t=ctx.currentTime,d=impact?.65:.55,noise=['fire','thunder','wind','ice'].includes(element),g=ctx.createGain();g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(impact?.12:.065,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+d);g.connect(sfxOut());if(noise){const buffer=ctx.createBuffer(1,Math.floor(ctx.sampleRate*d),ctx.sampleRate),a=buffer.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1);const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter();src.buffer=buffer;filter.type=element==='thunder'?'lowpass':'bandpass';filter.frequency.setValueAtTime(element==='thunder'?impact?2600:600:element==='fire'?impact?1100:450:element==='ice'?4000:1700,t);filter.frequency.exponentialRampToValueAtTime(120,t+d);src.connect(filter);filter.connect(g);src.start(t);src.stop(t+d);}const frequencies={fire:impact?[95,48]:[180,360],thunder:impact?[70,35]:[420,840],ice:[1200,1600],wind:[280,460],light:[523,659,784],dark:[90,135]}[element]||[330,660];for(const f of frequencies){const o=ctx.createOscillator(),v=ctx.createGain();o.type=element==='thunder'?'sawtooth':element==='dark'?'triangle':'sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(impact?f*.45:f*1.8,t+d);v.gain.value=.18;o.connect(v);v.connect(g);o.start(t);o.stop(t+d);}}
-// v1.7.0: effect sounds go through sfxOut(); the ending lowers them with sfxScale so they do not cover its music.
+// v1.4.2: effect sounds go through sfxOut(); the ending lowers them with sfxScale so they do not cover its music.
 var sfxScale=1,sfxGainNode=null;
 function sfxOut(){if(sfxScale===1)return audioCtx.destination;if(!sfxGainNode||sfxGainNode.context!==audioCtx){sfxGainNode=audioCtx.createGain();sfxGainNode.connect(audioCtx.destination);}sfxGainNode.gain.value=sfxScale;return sfxGainNode;}
 function sfx(type='tap'){if(!save.settings.sound)return;unlockAudio();if(!audioCtx)return;const notes={tap:[600,850],move:[220,320],swing:[350,170],hit:[190,95,48],magic:[320,640,960],heal:[440,554,659],death:[220,110,55],win:[392,494,587,784],lose:[220,196,146],turn:[440,660]}[type]||[600];notes.forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+i*.05;o.type=type==='hit'?'triangle':type==='swing'?'sawtooth':'sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*(type==='swing'?.4:.6),t+.15);g.gain.setValueAtTime(type==='hit'?.12:type==='swing'?.026:.065,t);g.gain.exponentialRampToValueAtTime(.001,t+.21);o.connect(g);g.connect(sfxOut());o.start(t);o.stop(t+.22);});if(type==='hit'){const duration=.12,size=Math.floor(audioCtx.sampleRate*duration),buffer=audioCtx.createBuffer(1,size,audioCtx.sampleRate),samples=buffer.getChannelData(0);for(let i=0;i<size;i++)samples[i]=Math.random()*2-1;const source=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),gain=audioCtx.createGain(),t=audioCtx.currentTime;source.buffer=buffer;filter.type='lowpass';filter.frequency.setValueAtTime(1800,t);filter.frequency.exponentialRampToValueAtTime(220,t+duration);gain.gain.setValueAtTime(.095,t);gain.gain.exponentialRampToValueAtTime(.001,t+duration);source.connect(filter);filter.connect(gain);gain.connect(sfxOut());source.start(t);source.stop(t+duration);}}
@@ -2097,7 +2097,7 @@ function refreshLegacyPrologueBattle(){
  log('프롤로그 입문 밸런스를 적용해 전투 시작 상태로 돌아왔습니다.');persist();return true;
 }
 function retryBattle(){restoreRetryProgress();battle=copy(save.retry||makeBattle(getStage()));refreshLegacyPrologueBattle();busy=false;preview=null;skill=null;selected=battle.units[0].id;mode='move';closeSheet();buildScene();refreshUI();persist();playBgm(isBossStage(getStage())?'boss':'battle');}
-// v1.5.0: story ending — opening, chapter recap, epilogue, journey statistics, credits, FIN, played over
+// v1.4.0: story ending — opening, chapter recap, epilogue, journey statistics, credits, FIN, played over
 // track 12. Stage 2 will put scripted 3D battle scenes behind the recap cards. showEndingTest() (settings menu)
 // plays it with sample data or the current save without changing the save.
 const ENDING_OST_URL='https://youtu.be/sd9nIfcOuGQ?si=7WfFx5f8prnp8m6f',ENDING_CONTACT='mmk75@naver.com';
@@ -2134,7 +2134,7 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
  const hero=id=>HEROES.find(h=>h.id===id),sections={
   async opening(){show('opening','<div class="ed-flash"></div><div class="ed-title"><div class="ed-eyebrow">cnation TACTICS</div><h1>THE ARCA CHRONICLE</h1><p>아르카 연대기 · 여정의 끝</p></div>');await wait(6500);await fade(stage.querySelector('.ed-title'));},
   async recap(){
-   // v1.6.0: each chapter shows its battle (3D, top) and its record (card, bottom) together.
+   // v1.4.1: each chapter shows its battle (3D, top) and its record (card, bottom) together.
    show('recap','<div class="ed-recap"><div class="ed-scene"><div class="ed-floats"></div><i class="ed-bar ed-bar-top"></i><i class="ed-bar ed-bar-bottom"></i></div><div class="ed-cardwrap"></div><div class="ed-white"></div></div>');
    const wrap=stage.querySelector('.ed-recap'),cardwrap=wrap.querySelector('.ed-cardwrap'),white=wrap.querySelector('.ed-white'),theater=createEndingTheater(wrap.querySelector('.ed-scene'));
    onSkipHook=()=>theater?.cancel();
@@ -2189,7 +2189,7 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
  };
  for(const name of ENDING_SECTIONS.slice(Math.max(0,ENDING_SECTIONS.indexOf(start)))){if(closed)break;skipped=false;await sections[name]();}
 }
-// v1.6.0: ending recap theater. One WebGL renderer for the whole recap; each chapter is built from that
+// v1.4.1: ending recap theater. One WebGL renderer for the whole recap; each chapter is built from that
 // chapter's last battle (makeBattle with the stage's fixed seed: same map, monsters and boss) and played as a
 // script with the game's own attack animations (attackWindup / flyProjectile / spellEffect / hitReaction through
 // a ctx), not with game logic. The chapter's MVP lands the finishing blow. pauseMainRender stops the game's
@@ -2222,7 +2222,7 @@ function createEndingTheater(host){
  function build(c,finisherId,rec=null){
   clear();const stage=STAGES.find(s=>s.id===chapterFinalStageId(c)),sc=CHAPTER_SCENES[c];
   scene.background=new THREE.Color(sc.sky);scene.fog=new THREE.Fog(sc.sky,26,90);
-  // v1.7.0: the recorded map seed rebuilds the map and monsters the player actually fought.
+  // v1.4.2: the recorded map seed rebuilds the map and monsters the player actually fought.
   let b=null;try{b=makeBattle(stage,Number.isFinite(rec?.seed)?rec.seed:stage.seed);}catch{try{b=makeBattle(stage,stage.seed);}catch{}}
   if(!b)return false;
   const w=mapWidth(b),h=mapHeight(b),at=new Map(b.tiles.map(t=>[t.x+','+t.z,t])),top=t=>(at.get(t.x+','+t.z)?.height||0)*.33;
@@ -2272,7 +2272,7 @@ function createEndingTheater(host){
   const fp=st.world(finisher),bp=st.world(boss),dir=fp.clone().sub(bp).setY(0).normalize(),side=new THREE.Vector3(-dir.z,0,dir.x),span=Math.max(st.w,st.h);
   const orbit=(ang,rad,y,look=center)=>look.clone().add(new THREE.Vector3(Math.cos(ang)*rad,y,Math.sin(ang)*rad)),a0=Math.atan2(dir.z,dir.x)+.85;
   const others=st.allies.filter(u=>u!==finisher),guards=st.enemies.filter(u=>u!==boss),rec=st.rec;
-  // Recorded blows (v1.7.0): the real last blow finishes the boss; the battle's biggest hit, when it was a
+  // Recorded blows (v1.4.2): the real last blow finishes the boss; the battle's biggest hit, when it was a
   // different blow, is the second strike. Without a record the script picks skills and plausible numbers.
   const recSkill=(h,id)=>SKILLS[h?.skillId]||(h&&Object.values(SKILLS).find(v=>v.name===h.skill))||(h&&h.skill==='기본 공격'?basic({...heroDef(id),heroId:id,team:'ally'}):null);
   const last=rec?.last&&rec.last.hero===finisher.heroId?rec.last:null,top=rec?.top&&!(last&&rec.top.hero===last.hero&&rec.top.v===last.v)&&st.allies.some(u=>u.heroId===rec.top.hero)?rec.top:null;
@@ -2308,7 +2308,7 @@ function createEndingTheater(host){
 function showEnding(){runEnding();}
 function showEndingTest(back){
  let sample=true;
- const draw=()=>showSheet('엔딩 화면 (테스트용)',`<p>스토리 모드 엔딩을 미리 봅니다. 저장 데이터는 바뀌지 않습니다. 재생 중 화면을 탭하면 「건너뛰기」가 나타납니다.</p><h3>표시할 기록</h3><button class="choice ${sample?'on':''}" data-ending-data="sample">예시 수치<small>최종 보스까지 클리어한 것처럼 만든 임의 데이터</small></button><button class="choice ${sample?'':'on'}" data-ending-data="real">내 실제 기록<small>현재 저장 데이터의 통계 (v1.5.0부터 집계)</small></button><h3>시작 위치</h3>${[['opening','처음부터'],['recap','챕터 회상부터'],['final','FINAL 전투부터'],['stats','여정의 기록부터'],['credits','크레딧부터']].map(([id,n])=>`<button class="secondary" data-ending-start="${id}">${n}</button>`).join('')}`,()=>{
+ const draw=()=>showSheet('엔딩 화면 (테스트용)',`<p>스토리 모드 엔딩을 미리 봅니다. 저장 데이터는 바뀌지 않습니다. 재생 중 화면을 탭하면 「건너뛰기」가 나타납니다.</p><h3>표시할 기록</h3><button class="choice ${sample?'on':''}" data-ending-data="sample">예시 수치<small>최종 보스까지 클리어한 것처럼 만든 임의 데이터</small></button><button class="choice ${sample?'':'on'}" data-ending-data="real">내 실제 기록<small>현재 저장 데이터의 통계 (v1.4.0부터 집계)</small></button><h3>시작 위치</h3>${[['opening','처음부터'],['recap','챕터 회상부터'],['final','FINAL 전투부터'],['stats','여정의 기록부터'],['credits','크레딧부터']].map(([id,n])=>`<button class="secondary" data-ending-start="${id}">${n}</button>`).join('')}`,()=>{
   $('#sheet').querySelectorAll('[data-ending-data]').forEach(b=>b.onclick=()=>{sample=b.dataset.endingData==='sample';draw();});
   $('#sheet').querySelectorAll('[data-ending-start]').forEach(b=>b.onclick=()=>{const final=b.dataset.endingStart==='final';runEnding({test:true,start:final?'recap':b.dataset.endingStart,recapFrom:final?9:0,sample,onExit:()=>showSettings(back)});});
  },{back:()=>showSettings(back)});
@@ -2321,7 +2321,7 @@ function continueJourney(){unlockAudio();if(!missionMode){const record=readStory
 if(!$('#encyclopediaBtn')){const button=document.createElement('button');button.id='encyclopediaBtn';button.className='secondary';button.textContent='백과사전';$('#newGame').after(button);}
 const recoverButton=document.createElement('button');recoverButton.id='recoverSave';recoverButton.className='secondary';recoverButton.textContent='손상된 저장 원본 내보내기';recoverButton.onclick=exportDamagedSave;$('#newGame').after(recoverButton);
 if($('.version'))$('.version').innerHTML=`ver.${GAME_VERSION} (<a href="revisions.html">rev. history</a>)`;
-// v1.4.1: open the revision history inside the game (iframe) instead of navigating away, so the page,
+// v1.3.5: open the revision history inside the game (iframe) instead of navigating away, so the page,
 // the loaded music and its playback position stay as they are.
 function showRevisions(){if($('#revisionsView'))return;const view=document.createElement('div');view.id='revisionsView';view.setAttribute('role','dialog');view.setAttribute('aria-modal','true');view.innerHTML=`<iframe src="revisions.html?v=${GAME_VERSION}" title="Revision History"></iframe><button class="iconbtn" id="closeRevisions" aria-label="닫기">×</button>`;$('#app').append(view);const onKey=e=>{if(e.key==='Escape')close();};const close=()=>{view.remove();window.removeEventListener('message',onMessage);document.removeEventListener('keydown',onKey);};document.addEventListener('keydown',onKey);const onMessage=e=>{if(e.origin===location.origin&&e.data==='tactics:close-revisions')close();};window.addEventListener('message',onMessage);$('#closeRevisions').onclick=close;$('#closeRevisions').focus({preventScroll:true});}
 $('.version a')?.addEventListener('click',e=>{if(e.button||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();showRevisions();});
