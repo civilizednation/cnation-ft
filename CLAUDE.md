@@ -59,7 +59,9 @@ Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
 `showEndingTest()` (settings menu, bottom) previews it with sample data (`sampleEndingData`) or the current save.
 The recap shows each chapter's battle (`createEndingTheater`: own WebGL renderer, chapter's last battle via `makeBattle(stage, stage.seed)`,
 scripted with the game's attack animations through a ctx) above its record card; the chapter MVP lands the last blow.
-`pauseMainRender` stops the game renderer while the ending is open. Per-chapter totals live in `save.stats.chapters[0..9]`.
+`save.chronicle[stageId]` also keeps `seed` (battle.mapSeed), `last` (boss kill / last kill) and `top` (biggest hit) as
+`{hero, skill, skillId, v, crit}`; the recap rebuilds that map and replays those blows. Ending effect sounds go through
+`sfxOut()` at `sfxScale` .55. `pauseMainRender` stops the game renderer while the ending is open. Per-chapter totals live in `save.stats.chapters[0..9]`.
 `save.stats` (totals) and `save.chronicle` (first clear of each chapter's last battle) are normalized in `normalizeStats`.
 Each battle collects `battle.tally` and adds it to `save.stats` exactly once in `recordBattleStats` (finishBattle / retreat;
 `battle.tallied` guards it). Retry/retreat restore never touches `save.stats`.
