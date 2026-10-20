@@ -47,7 +47,9 @@ The fit script at the end of index.html sets the layout class on `<html>` (`wind
 Landscape screens (v1.5.1, CSS in index.html unless noted): world map grid (map left, info right); `SHEET_SPLITS` +
 `applySheetColumns()` (game.js) wrap 장비 보관함 / 여행자의 상점 / 파티 관리 into two scrolling `.sheet-col`s (column scroll
 positions are part of the sheet scroll memo; rotating unwraps); codex list two columns, codex detail and story via `:has()`;
-ending recap scene left / card right; `.panel-log` (recent battle log) in the panel; mouse hover tile marker in game.js.
+ending recap scene left / card right; mouse hover tile marker in game.js. Landscape command panel (v1.5.2):
+`sidePanelHTML()` = skill shortcuts (`pickSkillIndex`), enemy status (boss first, by distance; tap pans + `inspectEnemy`),
+boss danger warning, footer `#spFoot` (`sidePanelFoot`, hover terrain via `showTileInfo`); `.chip-hp` bars on party chips.
 Phone portrait must stay unchanged: scope every landscape rule under `html.layout-landscape` (or `has-keyboard`).
 
 ## Revision management (required for every change)
