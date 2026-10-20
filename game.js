@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.7.0';
+const GAME_VERSION='1.7.1';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -2013,7 +2013,7 @@ function showWorld(ch=currentChapter){
  const available=unlockedChapter();recruitForChapter(available);currentChapter=missionMode?save.missionChapter:Math.max(0,Math.min(available,Number.isInteger(ch)?ch:currentChapter));isTitle=false;$('#title').hidden=true;$('#stagebar').hidden=true;$('#panel').hidden=true;playBgm('world');
  const stages=STAGES.filter(s=>s.chapter===currentChapter&&(missionMode?s.kind!=='side':true)).sort((a,b)=>(a.kind==='boss'?4:a.kind==='side'?.5+a.n*.1:a.n)-(b.kind==='boss'?4:b.kind==='side'?.5+b.n*.1:b.n)),mainStages=STAGES.filter(s=>s.kind!=='side'),sideStages=STAGES.filter(s=>s.kind==='side'),mainDone=mainStages.filter(s=>save.completed.includes(s.id)).length,sideDone=sideStages.filter(s=>save.completed.includes(s.id)).length,nextMainId=mainStages.find(s=>!save.completed.includes(s.id)&&isUnlocked(s))?.id,lastChapterMainId=stages.filter(s=>s.kind!=='side').at(-1)?.id;
  showSheet('에르디아 대륙',`
-  <div class="row"><span class="footnote">${missionMode?`미션 · ${CHAPTERS[currentChapter][0]} · ${stages.filter(s=>save.completed.includes(s.id)).length}/${stages.length}전`: `본편 ${mainDone}/${mainStages.length} · 추가 ${sideDone}/${sideStages.length} 완료`}</span><span class="gold">${save.gold.toLocaleString()} G</span></div>
+  <div class="row world-progress"><span class="footnote">${missionMode?`미션 · ${CHAPTERS[currentChapter][0]} · ${stages.filter(s=>save.completed.includes(s.id)).length}/${stages.length}전`: `본편 ${mainDone}/${mainStages.length} · 추가 ${sideDone}/${sideStages.length} 완료`}</span><span class="diff-badge diff-${save.difficulty}">난이도 ${({story:'하',normal:'중',tactical:'상'})[save.difficulty]||'중'}</span><span class="gold">${save.gold.toLocaleString()} G</span></div>
   <div class="chaptertabs">${CHAPTERS.slice(missionMode?currentChapter:0,missionMode?currentChapter+1:available+1).map((c,offset)=>{const i=missionMode?currentChapter:offset;return`<button data-chapter="${i}" class="${i===currentChapter?'on':''}">${i===0?'서막':i===9?'최종장':`${i}장`}</button>`;}).join('')}</div>
   <div class="map-heading"><span class="eyebrow">${CHAPTERS[currentChapter][0]}</span><h3>${CHAPTERS[currentChapter][1]}</h3><p>${CHAPTERS[currentChapter][2]}</p></div>
   <div class="journey-map"><canvas id="journeyMap" aria-label="${CHAPTERS[currentChapter][0]}의 3D 입체 지도"></canvas><div class="map-route-legend"><b>본편 1 → 2 → 3${stages.some(s=>s.kind==='boss')?' → 보스':''}</b><span>◇ 추가 전투는 건너뛰기 가능</span></div>
