@@ -35,6 +35,17 @@ Always write every message to the user in Korean (한국어) — progress update
   The story ending plays track 12 (`ENDING_BGM_TRACK`), preloaded when the final battle (c9s2) starts.
   sw.js caches bgm files cache-first.
 
+## Layout & input (v1.5.0)
+The fit script at the end of index.html sets the layout class on `<html>` (`window.TACTICS_LAYOUT`):
+- phone (coarse pointer, short screen side < 600): fluid portrait; landscape shows `#rotateNotice` (`phone-landscape`).
+- `layout-tablet`: tablet portrait / narrow windows, 500x960 scaled (`--game-scale`).
+- `layout-landscape`: tablet landscape and PC/laptop; 820px logical height scaled, width `--land-w` fills the screen;
+  `#app` is a grid: viewport left, header + `.panel` (400px) right; sheets open as centered windows.
+- `has-keyboard` (fine pointer): keyboard hints. Keys (game.js, e.code): WASD pan (`heldPanKeys`, applied in renderLoop),
+  R rotate, F attack, G skills, H wait, 1-9 skills from the top (`pickSkillIndex`), Space end turn (again confirms),
+  Enter confirm, Esc cancel. manifest `orientation` is `any`.
+Stage 2/3 (planned): two-column world map, inventory/shop/party, codex, story; landscape ending; hover highlights.
+
 ## Revision management (required for every change)
 Version format `ver.MAJOR.MINOR.PATCH` (user-defined, starting at 1.0.0):
 - PATCH (3rd) = fixes, tuning, and small feature additions/improvements (e.g. title music resume, a new badge,
