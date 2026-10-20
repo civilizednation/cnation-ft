@@ -36,7 +36,12 @@ Always write every message to the user in Korean (한국어) — progress update
   sw.js caches bgm files cache-first.
 
 ## Revision management (required for every change)
-Version format `ver.MAJOR.MINOR.PATCH`: PATCH = fixes/tuning, MINOR = new features, MAJOR = big overhaul.
+Version format `ver.MAJOR.MINOR.PATCH` (user-defined, starting at 1.0.0):
+- PATCH (3rd) = fixes, tuning, and small feature additions/improvements (e.g. title music resume, a new badge,
+  follow-up improvements to an existing big feature such as the ending's 3D recap).
+- MINOR (2nd) = big feature additions only (e.g. real soundtrack files in 1.1.0, the story ending in 1.4.0).
+- MAJOR (1st) = whole-game overhaul.
+When unsure whether a change is "big", treat it as PATCH.
 On every change that ships, bump the version and update ALL of:
 1. `game.js` — `const GAME_VERSION='x.y.z'`.
 2. `index.html` — title fallback text `ver.x.y.z`, `window.TACTICS_BUILD`, and `game.js?v=x.y.z`.
@@ -54,7 +59,7 @@ Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
   (Playwright + Chromium; ~15 min per iteration on 4 CPUs), then check with `tools/balance/validate.py <work> 4 <tuning.json>`
   and copy the tuning into `STAGE_TUNING`. The bot (`tools/balance/bot.js`) plays like an ordinary player.
 
-## Ending & statistics (v1.5.0)
+## Ending & statistics (v1.4.0)
 `runEnding()` shows the story ending (opening → recap → epilogue → stats → credits → FIN) in `#endingView`;
 `showEndingTest()` (settings menu, bottom) previews it with sample data (`sampleEndingData`) or the current save.
 The recap shows each chapter's battle (`createEndingTheater`: own WebGL renderer, chapter's last battle via `makeBattle(stage, stage.seed)`,
