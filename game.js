@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.5.0';
+const GAME_VERSION='1.6.0';
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
 const HEROES=[
 {id:'kyle',name:'카일',icon:'⚔',job:['검사','기사','성기사','소드마스터'],color:0x438fac,hair:0x855537,hp:108,mp:16,atk:25,def:16,mag:10,res:12,spd:12,move:4,jump:1,crit:.10,eva:.03,range:1,join:0,skills:['flame','break','windblade','valor','arcaslash','iceblade','stormblade'],passive:['강인함: HP +10%','검의 의지: 치명타 +5%']},
@@ -262,14 +262,14 @@ function normalizeSave(s){for(const p of s.party||[]){clampHeroProgress(p);p.bra
 // numbers in battle.tally (saved with the battle, so a resumed battle keeps them) and adds them to save.stats
 // exactly once when it ends (battle.tallied). Retry/retreat restore does not touch save.stats, so losses stay counted.
 // save.chronicle keeps the first clear of each chapter's last battle (turns, MVP, date) for the ending recap.
-function normalizeStats(s){const keys=['battles','wins','losses','retreats','turns','kills','bossKills','damage','crits','healed','potions','downed','goldEarned','gearEarned','playMs'],st=s.stats&&typeof s.stats==='object'&&!Array.isArray(s.stats)?s.stats:{},out={};for(const k of keys)out[k]=Number.isFinite(st[k])&&st[k]>=0?st[k]:0;out.maxHit=st.maxHit&&Number.isFinite(st.maxHit.v)&&HEROES.some(h=>h.id===st.maxHit.hero)?{v:st.maxHit.v,hero:st.maxHit.hero,skill:String(st.maxHit.skill||'').slice(0,40)}:null;out.mvp={};for(const h of HEROES)out.mvp[h.id]=Number.isInteger(st.mvp?.[h.id])&&st.mvp[h.id]>=0?st.mvp[h.id]:0;s.stats=out;const ch={};if(s.chronicle&&typeof s.chronicle==='object')for(const [id,r] of Object.entries(s.chronicle))if(STAGES.some(v=>v.id===id)&&r&&Number.isInteger(r.turns)&&Number.isFinite(r.date))ch[id]={turns:r.turns,mvp:HEROES.some(h=>h.id===r.mvp)?r.mvp:null,date:r.date,alive:Number.isInteger(r.alive)?r.alive:null};s.chronicle=ch;}
+function normalizeStats(s){const keys=['battles','wins','losses','retreats','turns','kills','bossKills','damage','crits','healed','potions','downed','goldEarned','gearEarned','playMs'],st=s.stats&&typeof s.stats==='object'&&!Array.isArray(s.stats)?s.stats:{},out={};for(const k of keys)out[k]=Number.isFinite(st[k])&&st[k]>=0?st[k]:0;out.maxHit=st.maxHit&&Number.isFinite(st.maxHit.v)&&HEROES.some(h=>h.id===st.maxHit.hero)?{v:st.maxHit.v,hero:st.maxHit.hero,skill:String(st.maxHit.skill||'').slice(0,40)}:null;out.mvp={};for(const h of HEROES)out.mvp[h.id]=Number.isInteger(st.mvp?.[h.id])&&st.mvp[h.id]>=0?st.mvp[h.id]:0;out.chapters={};for(let c=0;c<10;c++){const v=st.chapters?.[c]||{},o={};for(const k of ['battles','wins','kills','damage','turns'])o[k]=Number.isFinite(v[k])&&v[k]>=0?v[k]:0;o.mvp={};for(const h of HEROES)o.mvp[h.id]=Number.isInteger(v.mvp?.[h.id])&&v.mvp[h.id]>=0?v.mvp[h.id]:0;out.chapters[c]=o;}s.stats=out;const ch={};if(s.chronicle&&typeof s.chronicle==='object')for(const [id,r] of Object.entries(s.chronicle))if(STAGES.some(v=>v.id===id)&&r&&Number.isInteger(r.turns)&&Number.isFinite(r.date))ch[id]={turns:r.turns,mvp:HEROES.some(h=>h.id===r.mvp)?r.mvp:null,date:r.date,alive:Number.isInteger(r.alive)?r.alive:null};s.chronicle=ch;}
 function ensureStats(){if(!save.stats||!save.chronicle)normalizeStats(save);return save.stats;}
 function battleTally(){if(!battle)return null;battle.tally??={damage:0,crits:0,healed:0,potions:0,maxHit:null,by:{}};return battle.tally;}
 function tallyHit(u,damage,dealt,crit,skillName){if(u?.team!=='ally'||!u.heroId)return;const t=battleTally();if(!t)return;t.damage+=dealt;if(crit)t.crits++;t.by[u.heroId]=(t.by[u.heroId]||0)+dealt;if(!t.maxHit||damage>t.maxHit.v)t.maxHit={v:damage,hero:u.heroId,skill:skillName};}
 function tallyHeal(u,amount){if(u?.team!=='ally'||!u.heroId||!(amount>0))return;const t=battleTally();if(!t)return;t.healed+=amount;t.by[u.heroId]=(t.by[u.heroId]||0)+amount;}
 function battleMvp(t){const by=Object.entries(t?.by||{}).filter(([id,v])=>v>0&&HEROES.some(h=>h.id===id)).sort((a,b)=>b[1]-a[1]);return by[0]?.[0]||null;}
 function chapterFinalStageId(c){return c===0?'c0s2':c===9?'c9s2':`c${c}b`;}
-function recordBattleStats(result){if(!battle||battle.tallied)return;battle.tallied=true;const st=ensureStats(),t=battleTally(),stage=getStage();st.battles++;st[result==='win'?'wins':result==='loss'?'losses':'retreats']++;st.turns+=battle.round;const foes=battle.units.filter(u=>u.team==='enemy'&&u.hp<=0);st.kills+=foes.length;st.bossKills+=foes.filter(u=>u.boss).length;st.downed+=battle.units.filter(u=>u.team==='ally'&&u.hp<=0).length;st.damage+=t.damage;st.crits+=t.crits;st.healed+=t.healed;st.potions+=t.potions;if(t.maxHit&&(!st.maxHit||t.maxHit.v>st.maxHit.v))st.maxHit={...t.maxHit};if(result!=='win')return;const r=battle.reward||{},mvp=battleMvp(t);st.goldEarned+=(r.gold||0)+(r.autoLoot?.gold||0);st.gearEarned+=r.autoLoot?.gear||0;if(mvp)st.mvp[mvp]++;if(stage&&stage.id===chapterFinalStageId(stage.chapter)&&!save.chronicle[stage.id])save.chronicle[stage.id]={turns:battle.round,mvp,date:Date.now(),alive:battle.units.filter(u=>u.team==='ally'&&u.hp>0).length};}
+function recordBattleStats(result){if(!battle||battle.tallied)return;battle.tallied=true;const st=ensureStats(),t=battleTally(),stage=getStage();st.battles++;st[result==='win'?'wins':result==='loss'?'losses':'retreats']++;st.turns+=battle.round;const foes=battle.units.filter(u=>u.team==='enemy'&&u.hp<=0);st.kills+=foes.length;st.bossKills+=foes.filter(u=>u.boss).length;st.downed+=battle.units.filter(u=>u.team==='ally'&&u.hp<=0).length;st.damage+=t.damage;st.crits+=t.crits;st.healed+=t.healed;st.potions+=t.potions;if(t.maxHit&&(!st.maxHit||t.maxHit.v>st.maxHit.v))st.maxHit={...t.maxHit};const cs=stage?st.chapters[stage.chapter]:null;if(cs){cs.battles++;cs.kills+=foes.length;cs.damage+=t.damage;cs.turns+=battle.round;}if(result!=='win')return;const r=battle.reward||{},mvp=battleMvp(t);if(cs){cs.wins++;if(mvp)cs.mvp[mvp]++;}st.goldEarned+=(r.gold||0)+(r.autoLoot?.gold||0);st.gearEarned+=r.autoLoot?.gear||0;if(mvp)st.mvp[mvp]++;if(stage&&stage.id===chapterFinalStageId(stage.chapter)&&!save.chronicle[stage.id])save.chronicle[stage.id]={turns:battle.round,mvp,date:Date.now(),alive:battle.units.filter(u=>u.team==='ally'&&u.hp>0).length};}
 setInterval(()=>{if(!document.hidden&&!isTitle&&save)ensureStats().playMs+=5000;},5000);
 function makePickups(b,stage){
  if(b.replay||save.completed.includes(stage.id)){if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}return [];}
@@ -1592,7 +1592,7 @@ const combatStyle=document.createElement('style');combatStyle.textContent=`#faci
 
 function spellEffect(t,s,launched=false,ctx=null){const fxGroup=ctx?.fx||globalFxGroup,toWorld=ctx?.world||globalToWorld;const element=s.element||(['heal','cleanse'].includes(s.type)?'light':'dark'),duration=(launched?650:Math.max(1200,(s.id==='meteor'||s.name.includes('메테오')?2200:1800))),group=new THREE.Group(),p=toWorld(t),radius=.55+(s.area||0)*.36,colors={fire:0xff7a21,water:0x65cfff,thunder:0xffed94,ice:0x9aeaff,wind:0x84f5cd,light:0xfff3b1,dark:0xb784ff},color=colors[element]||colors.dark;group.position.copy(p);fxGroup.add(group);const mat=(c,opacity=1)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity,depthWrite:false,blending:THREE.AdditiveBlending});const ring=new THREE.Mesh(new THREE.RingGeometry(radius*.7,radius,36),mat(color,.7));ring.rotation.x=-Math.PI/2;ring.position.y=.05;group.add(ring);const core=new THREE.Mesh(new THREE.SphereGeometry(element==='fire'?.3:.22,12,8),mat(element==='fire'?0xffe49a:color));group.add(core);const glow=new THREE.Mesh(new THREE.SphereGeometry(.48,12,8),mat(color,.28));if(element==='fire'){glow.material.blending=THREE.NormalBlending;glow.material.opacity=.55;}group.add(glow);const pieces=[];for(let i=0;i<10;i++){const m=new THREE.Mesh(element==='ice'?new THREE.ConeGeometry(.1,.7,5):element==='wind'?new THREE.TorusGeometry(radius,.035,5,32):new THREE.SphereGeometry(.1,6,4),mat(i%2?color:element==='fire'?0xffba42:0xffefc5,.85));group.add(m);pieces.push(m);}const sparkGeometry=new THREE.BufferGeometry(),positions=new Float32Array(40*3);sparkGeometry.setAttribute('position',new THREE.BufferAttribute(positions,3));const sparks=new THREE.Points(sparkGeometry,new THREE.PointsMaterial({color,size:.09,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending}));group.add(sparks);const bolts=[];if(element==='thunder'){for(let j=0;j<3;j++){const coords=[];for(let i=0;i<9;i++)coords.push(new THREE.Vector3((Math.random()-.5)*.35+j*.13,3.2-i*.4,(Math.random()-.5)*.3));const line=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(coords),24,j===0?.035:.022,4,false),mat(j===0?0xffffff:0x9bddff));group.add(line);bolts.push(line);}}let impactResolve,doneResolve;const impact=new Promise(r=>impactResolve=r),done=new Promise(r=>doneResolve=r),start=performance.now();let hit=false,last=start,elapsed=0;if(!ctx)activeSpell={element,phase:'casting',duration,elapsed:0};if(!ctx)spellSound(element);function draw(now){if(ctx?.cancelled){impactResolve();doneResolve();return;}const delta=Math.min(60,now-last)*(ctx?.speed||save.settings.speed)*(ctx?1:visualSlow);last=now;elapsed+=delta;if(!ctx&&!hit)advanceCritical(delta);const progress=Math.min(1,elapsed/duration),q=launched?.55+.45*progress:progress,fall=Math.min(1,q/.55),tail=Math.max(0,(q-.55)/.45);if(!ctx)activeSpell={element,phase:q<.55?'casting':'impact',duration,elapsed:now-start};ring.rotation.z=now*.003;ring.scale.setScalar(q<.55?.55+fall*.45:1+tail*.6);ring.material.opacity=q<.55?.35+fall*.45:(1-tail)*.85;if(!hit&&q>=.55){hit=true;if(!ctx){criticalImpact();spellSound(element,true);}impactResolve();}const descend=3.1*(1-fall*fall);core.visible=element!=='thunder';glow.visible=q<.75;core.position.set(element==='fire'?(1-fall)*.6:0,q<.55?element==='fire'?descend+.2:.35+Math.sin(fall*Math.PI)*1.3:.3,0);core.scale.setScalar(q<.55?element==='fire'?.5+fall:1:q<.7?1+tail*4:Math.max(.01,2*(1-tail)));core.material.opacity=1-tail;glow.position.copy(core.position);glow.scale.setScalar(1+tail*3);glow.material.opacity=(element==='fire'?.55:.25)*(1-tail);for(let i=0;i<pieces.length;i++){const m=pieces[i],a=i/pieces.length*Math.PI*2+now*.002;if(element==='fire'){m.position.set(q<.55?core.position.x+(Math.random()-.5)*.18:Math.cos(a)*radius*tail,q<.55?core.position.y+.2+i*.09:.12+Math.sin(tail*Math.PI)*(.5+i%3*.2),q<.55?(Math.random()-.5)*.15:Math.sin(a)*radius*tail);m.scale.setScalar(q<.55?.6+i*.05:2*(1-tail)+.1);}else if(element==='ice'){m.position.set(Math.cos(a)*radius,.1+Math.min(1,fall)*.25,Math.sin(a)*radius);m.scale.y=q<.55?fall:1-tail;}else if(element==='wind'){m.position.set(0,.12+i*.11,0);m.rotation.x=Math.PI/2;m.rotation.y=Math.sin(now*.003+i)*.12;m.scale.setScalar(.25+i*.07);m.material.opacity=(q<.55?fall:1-tail)*.5;}else{m.position.set(Math.cos(a)*radius*(1-tail),.2+i*.08+Math.sin(now*.004+i)*.12,Math.sin(a)*radius*(1-tail));}m.material.opacity*=q>.85?.94:1;}for(let i=0;i<40;i++){const a=i*2.4+now*.001,r=q<.55?radius*(1-fall*.5):radius*(.2+tail*1.6);positions[i*3]=Math.cos(a)*r;positions[i*3+1]=element==='fire'&&q<.55?core.position.y+i*.016:.12+(i%7)*.12*(q<.55?fall:1-tail);positions[i*3+2]=Math.sin(a)*r;}sparkGeometry.attributes.position.needsUpdate=true;sparks.material.opacity=q<.55?fall:1-tail;for(const bolt of bolts){bolt.visible=q>=.5&&q<.88;bolt.material.opacity=(1-tail)*(.4+Math.abs(Math.sin(now*.06))*.6);}if(q<1){requestAnimationFrame(draw);return;}fxGroup.remove(group);disposeGroup(group);if(!ctx)activeSpell=null;doneResolve();}requestAnimationFrame(draw);return {impact,done};}
 function burst(t,color=0xffc47f,count=18,ctx=null){const fxGroup=ctx?.fx||globalFxGroup,particles=ctx?(ctx.particles||=[]) :getGlobalParticles(),p=(ctx?.world||toWorld)(t);for(let i=0;i<count;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.035+Math.random()*.04,4,3),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.9}));m.position.copy(p).y+=.4;fxGroup.add(m);particles.push({m,v:new THREE.Vector3((Math.random()-.5)*2,Math.random()*2+1,(Math.random()-.5)*2),life:.7});}}
-function renderLoop(ms){animId=requestAnimationFrame(renderLoop);if(document.hidden)return;const dt=Math.min(.05,(ms-lastFrame)/1000||.016);lastFrame=ms;$('#criticalNotice').hidden=!criticalShot||isTitle;if(waterSurface)waterSurface.material.uniforms.uTime.value=ms*.001;angle+=(targetAngle-angle)*Math.min(1,dt*9);camera.zoom=criticalShot?criticalShot.baseZoom*(criticalShot.returning?3-2*clamp((performance.now()-criticalShot.returnStart)/650,0,1):criticalScale(criticalShot.progress)):camera.zoom+(zoom-camera.zoom)*Math.min(1,dt*9);camera.updateProjectionMatrix();camLook.copy(pan);camLook.y+=.45;if(criticalShot?.focusCenter){const focusModel=models.get(criticalShot.focusUnit);if(focusModel)criticalShot.focusCenter.copy(focusModel.position).y+=.65;const focusWeight=criticalShot.returning?1-clamp((performance.now()-criticalShot.returnStart)/650,0,1):clamp(criticalShot.progress*3,0,1);camLook.copy(criticalShot.baseLook).lerp(criticalShot.focusCenter,focusWeight);}else if(camFocus)camLook.lerp(camFocus,.22);camera.position.set(camLook.x+Math.sin(angle)*16,17+camLook.y,camLook.z+Math.cos(angle)*16);if(impactShake>.001){camera.position.x+=(Math.random()-.5)*impactShake;camera.position.y+=(Math.random()-.5)*impactShake;impactShake*=Math.exp(-dt*18);}camera.lookAt(camLook);if(isTitle)targetAngle+=dt*.027;
+function renderLoop(ms){animId=requestAnimationFrame(renderLoop);if(document.hidden||pauseMainRender)return;const dt=Math.min(.05,(ms-lastFrame)/1000||.016);lastFrame=ms;$('#criticalNotice').hidden=!criticalShot||isTitle;if(waterSurface)waterSurface.material.uniforms.uTime.value=ms*.001;angle+=(targetAngle-angle)*Math.min(1,dt*9);camera.zoom=criticalShot?criticalShot.baseZoom*(criticalShot.returning?3-2*clamp((performance.now()-criticalShot.returnStart)/650,0,1):criticalScale(criticalShot.progress)):camera.zoom+(zoom-camera.zoom)*Math.min(1,dt*9);camera.updateProjectionMatrix();camLook.copy(pan);camLook.y+=.45;if(criticalShot?.focusCenter){const focusModel=models.get(criticalShot.focusUnit);if(focusModel)criticalShot.focusCenter.copy(focusModel.position).y+=.65;const focusWeight=criticalShot.returning?1-clamp((performance.now()-criticalShot.returnStart)/650,0,1):clamp(criticalShot.progress*3,0,1);camLook.copy(criticalShot.baseLook).lerp(criticalShot.focusCenter,focusWeight);}else if(camFocus)camLook.lerp(camFocus,.22);camera.position.set(camLook.x+Math.sin(angle)*16,17+camLook.y,camLook.z+Math.cos(angle)*16);if(impactShake>.001){camera.position.x+=(Math.random()-.5)*impactShake;camera.position.y+=(Math.random()-.5)*impactShake;impactShake*=Math.exp(-dt*18);}camera.lookAt(camLook);if(isTitle)targetAngle+=dt*.027;
 for(const u of battle?.units||[]){const m=models.get(u.id);if(!m)continue;m.visible=u.hp>0;m.userData.body.position.y=Math.sin(ms*.003*visualSlow+u.x)*.022;m.userData.body.rotation.z=(u.hp>0&&u.acted?.035:0)+(m.userData.attackLean||0)+(m.userData.hitLean||0);const el=labelEls.get(u.id);if(el){el.style.display=u.hp<=0||isTitle?'none':'block';const p=project(m.position.clone().add(new THREE.Vector3(0,u.boss?1.95:1.33,0)));el.style.left=`${p.x}px`;el.style.top=`${p.y}px`;el.querySelector('i').style.width=`${u.hp/u.maxHp*100}%`;el.querySelector('.hp-value').textContent=`${Math.ceil(u.hp)}/${u.maxHp}`;const signs=el.querySelector('.status-signs'),signHTML=statusSignsHTML(u);if(signs.innerHTML!==signHTML)signs.innerHTML=signHTML;el.querySelector('.done').textContent=u.acted?'✓':u.id===selected?'▼':Object.keys(u.status).length?'•':'';}}
 for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt*visualSlow;p.m.position.addScaledVector(p.v,dt*visualSlow);p.v.y-=dt*visualSlow*2;p.m.material.opacity=p.life;if(p.life<=0){fxGroup.remove(p.m);p.m.geometry.dispose();p.m.material.dispose();particles.splice(i,1);}}
 updateStatusVisuals(ms);updateElementalAuras(ms);positionFacingUI();renderer.render(scene,camera);}
@@ -2098,13 +2098,14 @@ const ENDING_SECTIONS=['opening','recap','epilogue','stats','credits','fin'];
 function sampleEndingData(){
  const levels={kyle:40,ria:40,bran:39,sera:39,luna:38,nero:39},chronicle={},mvps=['kyle','ria','bran','sera','luna','nero','sera','kyle','ria','kyle'];
  for(let c=0;c<10;c++)chronicle[chapterFinalStageId(c)]={turns:[5,7,8,9,8,10,11,9,12,14][c],mvp:mvps[c],date:Date.now()-(10-c)*3*864e5,alive:c===9?6:Math.min(6,2+c)};
- return {sample:true,difficulty:'normal',levels,chronicle,stats:{battles:64,wins:57,losses:5,retreats:2,turns:498,kills:812,bossKills:10,damage:248930,crits:143,healed:38420,potions:47,downed:21,goldEarned:52380,gearEarned:96,playMs:(11*60+23)*6e4,maxHit:{v:1874,hero:'ria',skill:SKILLS.meteor?.name||'메테오'},mvp:{kyle:14,ria:11,bran:6,sera:10,luna:8,nero:8}}};
+ const chapters={};for(let c=0;c<10;c++){const battles=[3,6,6,6,7,7,7,8,8,6][c],mvp={};for(const h of HEROES)mvp[h.id]=0;mvp[mvps[c]]=Math.ceil(battles/2);chapters[c]={battles,wins:battles-(c%3===2?1:0),kills:[9,38,52,61,70,78,84,92,101,60][c],damage:[620,5400,9800,14500,19800,24600,29400,34800,41200,32500][c],turns:battles*8,mvp};}
+ return {sample:true,difficulty:'normal',levels,chronicle,stats:{chapters,battles:64,wins:57,losses:5,retreats:2,turns:498,kills:812,bossKills:10,damage:248930,crits:143,healed:38420,potions:47,downed:21,goldEarned:52380,gearEarned:96,playMs:(11*60+23)*6e4,maxHit:{v:1874,hero:'ria',skill:SKILLS.meteor?.name||'메테오'},mvp:{kyle:14,ria:11,bran:6,sera:10,luna:8,nero:8}}};
 }
 function currentEndingData(){ensureStats();return {sample:false,difficulty:save.difficulty,levels:Object.fromEntries(save.party.map(p=>[p.id,p.level])),chronicle:save.chronicle,stats:save.stats};}
 function endingColor(n){return '#'+n.toString(16).padStart(6,'0');}
 function endingDate(t){const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()}`;}
 function endingPlayTime(ms){const m=Math.floor(ms/6e4);return `${Math.floor(m/60)}시간 ${m%60}분`;}
-async function runEnding({test=false,start='opening',sample=false,onExit=null,returnBgm=null}={}){
+async function runEnding({test=false,start='opening',sample=false,onExit=null,returnBgm=null,recapFrom=0}={}){
  if($('#endingView'))return;
  closeSheet();unlockAudio();
  const data=sample?sampleEndingData():currentEndingData(),prevBgm=returnBgm??playingBgm,view=document.createElement('div');
@@ -2112,10 +2113,10 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
  view.innerHTML='<div class="ed-stage"></div><button class="ed-skip" hidden>건너뛰기 ▶▶</button>';
  $('#app').append(view);
  const stage=view.querySelector('.ed-stage'),skipBtn=view.querySelector('.ed-skip');
- let skipped=false,wake=null,skipTimer=0,closed=false;
+ let skipped=false,wake=null,skipTimer=0,closed=false,onSkipHook=null;pauseMainRender=true;
  const wait=ms=>skipped||closed?Promise.resolve():new Promise(r=>{const t=setTimeout(()=>{wake=null;r();},ms);wake=()=>{clearTimeout(t);wake=null;r();};});
  view.addEventListener('click',e=>{if(e.target.closest('a,button')||stage.dataset.section==='fin')return;skipBtn.hidden=false;clearTimeout(skipTimer);skipTimer=setTimeout(()=>skipBtn.hidden=true,3000);});
- skipBtn.onclick=()=>{skipped=true;skipBtn.hidden=true;wake?.();};
+ skipBtn.onclick=()=>{skipped=true;skipBtn.hidden=true;onSkipHook?.();wake?.();};
  const show=(section,html)=>{stage.dataset.section=section;stage.innerHTML=html;stage.scrollTop=0;};
  const fade=async(el,ms=900)=>{el?.classList.add('ed-out');await new Promise(r=>setTimeout(r,skipped?0:ms));};
  // Music first, so the picture starts with it.
@@ -2125,11 +2126,25 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
  const hero=id=>HEROES.find(h=>h.id===id),sections={
   async opening(){show('opening','<div class="ed-flash"></div><div class="ed-title"><div class="ed-eyebrow">cnation TACTICS</div><h1>THE ARCA CHRONICLE</h1><p>아르카 연대기 · 여정의 끝</p></div>');await wait(6500);await fade(stage.querySelector('.ed-title'));},
   async recap(){
-   for(let c=0;c<10&&!skipped;c++){
-    const ch=CHAPTERS[c],sc=CHAPTER_SCENES[c],line=ch[4][ch[4].length-1],rec=data.chronicle?.[chapterFinalStageId(c)],party=HEROES.filter(h=>h.join<=c);
-    show('recap',`<div class="ed-recap" style="--sky:${endingColor(sc.sky)};--land:${endingColor(sc.land)};--accent:${endingColor(sc.accent)}"><div class="ed-card"><div class="ed-eyebrow">${ch[0]}</div><h2>${ch[1]}</h2><div class="ed-place">${ch[2]}</div><blockquote><b>${line[0]}</b>${escapeHTML(line[1])}</blockquote><div class="ed-party">${party.map(h=>`<span title="${h.name}">${h.icon}<small>${h.name}</small></span>`).join('')}</div>${rec?`<div class="ed-record">클리어 ${rec.turns}턴 · MVP ${hero(rec.mvp)?.name||'—'} · ${endingDate(rec.date)}</div>`:''}</div></div>`);
-    await wait(c===9?4800:3400);await fade(stage.querySelector('.ed-card'),500);
-   }
+   // v1.6.0: each chapter shows its battle (3D, top) and its record (card, bottom) together.
+   show('recap','<div class="ed-recap"><div class="ed-scene"><div class="ed-floats"></div><i class="ed-bar ed-bar-top"></i><i class="ed-bar ed-bar-bottom"></i></div><div class="ed-cardwrap"></div><div class="ed-white"></div></div>');
+   const wrap=stage.querySelector('.ed-recap'),cardwrap=wrap.querySelector('.ed-cardwrap'),white=wrap.querySelector('.ed-white'),theater=createEndingTheater(wrap.querySelector('.ed-scene'));
+   onSkipHook=()=>theater?.cancel();
+   const countUp=el=>{for(const n of el.querySelectorAll('[data-count]:not(.ed-counted)')){n.classList.add('ed-counted');const target=+n.dataset.count,t0=performance.now(),step=now=>{if(!n.isConnected)return;const q=Math.min(1,(now-t0)/1400);n.textContent=Math.round(target*(1-(1-q)**3)).toLocaleString('ko-KR');if(q<1)requestAnimationFrame(step);};requestAnimationFrame(step);}};
+   try{
+    for(let c=recapFrom;c<10&&!skipped;c++){
+     const ch=CHAPTERS[c],sc=CHAPTER_SCENES[c],line=ch[4][ch[4].length-1],rec=data.chronicle?.[chapterFinalStageId(c)],cs=data.stats.chapters?.[c],joined=HEROES.filter(h=>h.join<=c);
+     const mvpEntry=Object.entries(cs?.mvp||{}).filter(([id,n])=>n>0&&joined.some(h=>h.id===id)).sort((a,b)=>b[1]-a[1])[0],mvpId=mvpEntry?.[0]||(joined.some(h=>h.id===rec?.mvp)?rec.mvp:null),finisher=mvpId||joined[joined.length-1].id;
+     wrap.style.cssText=`--sky:${endingColor(sc.sky)};--land:${endingColor(sc.land)};--accent:${endingColor(sc.accent)}`;wrap.classList.toggle('ed-final',c===9);
+     cardwrap.innerHTML=`<div class="ed-card"><div class="ed-eyebrow">${ch[0]}</div><h2>${ch[1]}</h2><div class="ed-place">${ch[2]}</div><blockquote><b>${line[0]}</b>${escapeHTML(line[1])}</blockquote>${cs?.battles?`<div class="ed-cstats"><span>전투<b data-count="${cs.battles}">0</b></span><span>처치<b data-count="${cs.kills}">0</b></span><span>피해<b data-count="${cs.damage}">0</b></span></div>`:''}${rec?`<div class="ed-record">마지막 전투 ${rec.turns}턴 클리어 · ${endingDate(rec.date)}</div>`:''}<div class="ed-party">${joined.map(h=>`<span class="${h.id===mvpId?'ed-mvp':''}">${h.icon}<small>${h.name}</small></span>`).join('')}</div>${mvpId?`<div class="ed-mvp-line">★ MVP ${hero(mvpId).name}</div>`:''}</div>`;
+     const card=cardwrap.firstElementChild,built=theater?.build(c,finisher);
+     const hooks={onAction:()=>countUp(card),onImpact:()=>card.classList.add('ed-glow'),onRise:()=>{white.classList.add('ed-on');setTimeout(()=>white.classList.remove('ed-on'),1500);}};
+     if(c<9)setTimeout(()=>card.classList.add('ed-in'),250);
+     if(built)await Promise.race([theater.play(hooks),wait(c===9?24000:16000)]);else{await wait(1500);countUp(card);card.classList.add('ed-glow');await wait(2500);}
+     if(c===9){card.classList.add('ed-in');countUp(card);card.classList.add('ed-glow');await wait(5200);}else await wait(1300);
+     white.classList.add('ed-flash');await wait(260);card.classList.add('ed-out');await wait(140);white.classList.remove('ed-flash');
+    }
+   }finally{onSkipHook=null;theater?.dispose();}
   },
   async epilogue(){
    show('epilogue','<div class="ed-epilogue"><p class="ed-line"><b>리아</b>이제 들리지 않아. 나를 부르던 코어의 목소리도, 백 년 전의 전쟁도.</p><p class="ed-line"><b>카일</b>그럼 이제 네가 가고 싶은 곳으로 가자. 우리 모두 함께.</p><p class="ed-line ed-narration">에테르는 다시 대륙을 흘렀다.<br>병기의 시대는 끝났지만, 여섯 사람의 여행은 아직 끝나지 않았다.</p></div>');
@@ -2145,7 +2160,7 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
    for(const el of stage.querySelectorAll('[data-count]')){const target=+el.dataset.count,t0=performance.now();const step=now=>{if(!el.isConnected)return;const q=Math.min(1,(now-t0)/1600);el.textContent=Math.round(target*(1-(1-q)**3)).toLocaleString('ko-KR');if(q<1)requestAnimationFrame(step);};setTimeout(()=>requestAnimationFrame(step),300);}
    // Long lists scroll down slowly once the cards are in, so the ace card comes into view.
    await wait(6000);if(!skipped&&stage.scrollHeight>stage.clientHeight+4)stage.scrollTo({top:stage.scrollHeight,behavior:'smooth'});
-   await wait(20000);await fade(stage.querySelector('.ed-stats'));
+   await wait(16000);await fade(stage.querySelector('.ed-stats'));
   },
   async credits(){
    show('credits',`<div class="ed-credits"><div class="ed-roll"><div class="ed-eyebrow">cnation TACTICS</div><h2>아르카 연대기</h2><p class="ed-role">제작</p><p class="ed-name">cnation (문명국)</p><p class="ed-role">연락</p><p class="ed-name"><a href="mailto:${ENDING_CONTACT}">${ENDING_CONTACT}</a></p><p class="ed-role">Original Soundtrack</p><p class="ed-name"><a href="${ENDING_OST_URL}" target="_blank" rel="noopener">YouTube에서 OST 듣기 ↗</a></p><p class="ed-role">등장인물</p>${HEROES.map(h=>`<p class="ed-name">${h.icon} ${h.name} <small>${h.job[0]}</small></p>`).join('')}<p class="ed-role">사용한 오픈소스</p><p class="ed-name"><small>three.js — MIT License<br>Stylish · Gowun Dodum — SIL Open Font License</small></p><p class="ed-role">그리고</p><p class="ed-name">끝까지 함께해 준 당신</p><p class="ed-thanks">플레이해 주셔서 감사합니다</p></div></div>`);
@@ -2156,7 +2171,7 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
    show('fin',`<div class="ed-fin"><div class="ed-eyebrow">THE ARCA CHRONICLE</div><h1>FIN</h1><p>여섯 사람의 여행은 아직 끝나지 않았다.</p><div class="ed-links"><a href="${ENDING_OST_URL}" target="_blank" rel="noopener">🎵 OST 듣기</a><a href="mailto:${ENDING_CONTACT}">✉ ${ENDING_CONTACT}</a></div>${test?'<button class="primary" id="endingReplay">처음부터 다시 보기</button><button class="secondary" id="endingExit">설정으로 돌아가기</button>':'<button class="primary" id="endingContinue">남은 모험 계속하기</button><button class="secondary" id="endingTitle">타이틀로</button>'}</div>`);
    skipBtn.hidden=true;
    await new Promise(resolve=>{
-    const close=next=>{closed=true;view.remove();resolve();next();};
+    const close=next=>{closed=true;pauseMainRender=false;view.remove();resolve();next();};
     stage.querySelector('#endingReplay')?.addEventListener('click',()=>close(()=>runEnding({test,start:'opening',sample,onExit,returnBgm:prevBgm})));
     stage.querySelector('#endingExit')?.addEventListener('click',()=>close(()=>{playBgm(prevBgm||'title');onExit?.();}));
     stage.querySelector('#endingContinue')?.addEventListener('click',()=>close(()=>showWorld(9)));
@@ -2166,12 +2181,118 @@ async function runEnding({test=false,start='opening',sample=false,onExit=null,re
  };
  for(const name of ENDING_SECTIONS.slice(Math.max(0,ENDING_SECTIONS.indexOf(start)))){if(closed)break;skipped=false;await sections[name]();}
 }
+// v1.6.0: ending recap theater. One WebGL renderer for the whole recap; each chapter is built from that
+// chapter's last battle (makeBattle with the stage's fixed seed: same map, monsters and boss) and played as a
+// script with the game's own attack animations (attackWindup / flyProjectile / spellEffect / hitReaction through
+// a ctx), not with game logic. The chapter's MVP lands the finishing blow. pauseMainRender stops the game's
+// renderer behind the ending.
+var pauseMainRender=false;
+const ED_TERRAIN={grass:0x85b08b,forest:0x669a7b,swamp:0x677f77,water:0x3b7d92,stone:0x9bafa7,bridge:0xbda67e,dirt:0xb09269,desert:0xd2b274,scrub:0xa19a67,sand:0xe0c58c};
+const edEase=q=>q<.5?2*q*q:1-(-2*q+2)**2/2,edEaseOut=q=>1-(1-q)**3;
+function edSkillFor(heroId,c,strongest){const h=heroDef(heroId),lvl=(MISSION_START_LEVELS[c]||1)+2,list=h.skills.map(id=>SKILLS[id]).filter(s=>s&&['physical','magic'].includes(s.type)&&(s.unlock||0)<=lvl);if(!list.length)return basic({...h,heroId,team:'ally'});return strongest?list.reduce((a,b)=>(b.power||1)>(a.power||1)?b:a):list[Math.floor(Math.random()*list.length)];}
+function createEndingTheater(host){
+ const canvas=document.createElement('canvas');canvas.className='ed-canvas';host.prepend(canvas);
+ let r;try{r=new THREE.WebGLRenderer({canvas,antialias:true});}catch{canvas.remove();return null;}
+ r.setPixelRatio(Math.min(devicePixelRatio,save.settings.quality===0?1:1.5));r.outputColorSpace=THREE.SRGBColorSpace;
+ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(36,1,.1,800),root=new THREE.Group(),floats=host.querySelector('.ed-floats');
+ scene.add(new THREE.HemisphereLight(0xe4f0ce,0x203844,2.4));const sun=new THREE.DirectionalLight(0xffedc7,3);sun.position.set(-5,12,6);scene.add(sun,root);
+ const camPos=new THREE.Vector3(0,12,12),camLook=new THREE.Vector3();
+ let move=null,frame=0,last=performance.now(),disposed=false,st=null;
+ function draw(now){
+  if(disposed)return;frame=requestAnimationFrame(draw);const dt=Math.min(.05,(now-last)/1000);last=now;if(document.hidden)return;
+  if(move){const q=Math.min(1,(now-move.t0)/move.ms),e=move.ease(q);camPos.lerpVectors(move.p0,move.p1,e);camLook.lerpVectors(move.l0,move.l1,e);if(q>=1){const done=move.done;move=null;done();}}
+  const w=host.clientWidth,h=host.clientHeight;if(w&&h&&(canvas.width!==Math.round(w*r.getPixelRatio())||canvas.height!==Math.round(h*r.getPixelRatio()))){r.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  camera.position.copy(camPos);camera.lookAt(camLook);
+  if(st){for(const p of [...st.ctx.particles]){p.life-=dt;p.m.position.addScaledVector(p.v,dt);p.v.y-=dt*2;p.m.material.opacity=Math.max(0,p.life);if(p.life<=0){st.ctx.fx.remove(p.m);p.m.geometry.dispose();p.m.material.dispose();st.ctx.particles.splice(st.ctx.particles.indexOf(p),1);}}
+   for(const m of st.models.values()){const b=m.userData.body;if(!b)continue;b.rotation.z=(m.userData.attackLean||0)+(m.userData.hitLean||0);if(!m.userData.down)b.position.y=m.userData.bobBase+Math.sin(now*.003+m.userData.bob)*.02;}}
+  r.render(scene,camera);
+ }
+ frame=requestAnimationFrame(draw);
+ const shot=(pos,look,ms=0,ease=edEase)=>{move?.done();move=null;if(!ms||!st||st.ctx.cancelled){camPos.copy(pos);camLook.copy(look);return Promise.resolve();}return new Promise(done=>{move={p0:camPos.clone(),l0:camLook.clone(),p1:pos.clone(),l1:look.clone(),t0:performance.now(),ms,ease,done};});};
+ const pause=ms=>new Promise(res=>{if(st?.ctx.cancelled)return res();const t=setTimeout(res,ms/(st?.ctx.speed||1));st?.ctx.timers.push([t,res]);});
+ function clear(){if(st){st.ctx.cancelled=true;for(const [t,res] of st.ctx.timers){clearTimeout(t);res();}}move?.done();move=null;disposeGroup(root);floats.replaceChildren();st=null;}
+ function build(c,finisherId){
+  clear();const stage=STAGES.find(s=>s.id===chapterFinalStageId(c)),sc=CHAPTER_SCENES[c];
+  scene.background=new THREE.Color(sc.sky);scene.fog=new THREE.Fog(sc.sky,26,90);
+  let b=null;try{b=makeBattle(stage,stage.seed);}catch{}
+  if(!b)return false;
+  const w=mapWidth(b),h=mapHeight(b),at=new Map(b.tiles.map(t=>[t.x+','+t.z,t])),top=t=>(at.get(t.x+','+t.z)?.height||0)*.33;
+  const world=t=>new THREE.Vector3(t.x-(w-1)/2,top(t)+.02,t.z-(h-1)/2);
+  const allies=b.units.filter(u=>u.team==='ally').map(u=>({...heroDef(u.heroId),...u})),foes=b.units.filter(u=>u.team==='enemy');
+  const boss=foes.find(u=>u.boss)||foes.reduce((a,v)=>v.maxHp>a.maxHp?v:a,foes[0]);
+  // Bring the fight together: the boss stands a few tiles in front of the party, two guards beside it,
+  // a few more monsters behind. The rest of the encounter is left out.
+  const taken=new Set(allies.map(u=>u.x+','+u.z)),open=(x,z)=>x>=0&&z>=0&&x<w&&z<h&&at.get(x+','+z).terrain!=='water'&&!taken.has(x+','+z);
+  const cx=allies.reduce((s,u)=>s+u.x,0)/allies.length,cz=allies.reduce((s,u)=>s+u.z,0)/allies.length;
+  const near=(x0,z0,dmin,dmax)=>b.tiles.filter(t=>open(t.x,t.z)&&Math.abs(t.x-x0)+Math.abs(t.z-z0)>=dmin&&Math.abs(t.x-x0)+Math.abs(t.z-z0)<=dmax);
+  const place=(u,list)=>{const t=list.sort((a,b)=>(a.x+a.z)-(b.x+b.z)).reverse()[0]||list[0];if(!t)return false;u.x=t.x;u.z=t.z;taken.add(t.x+','+t.z);return true;};
+  const front=near(cx,cz,4,5).filter(t=>t.x<cx&&t.z<cz);place(boss,front.length?front:near(cx,cz,3,6));
+  const enemies=[boss];for(const u of foes.filter(v=>v!==boss)){if(enemies.length>=6)break;const ring=enemies.length<3?near(boss.x,boss.z,1,2).filter(t=>Math.abs(t.x-cx)+Math.abs(t.z-cz)>=3):near(boss.x,boss.z,2,4).filter(t=>t.x+t.z<boss.x+boss.z+1);if(place(u,ring))enemies.push(u);}
+  const geoBox=new THREE.BoxGeometry(.975,1,.975),units=[...allies,...enemies];
+  for(const t of b.tiles){const height=t.height*.33,depth=height+.6,col=new THREE.Color(ED_TERRAIN[t.terrain]||sc.land);if((t.x+t.z)%2)col.offsetHSL(0,0,-.025);const m=new THREE.Mesh(geoBox,new THREE.MeshToonMaterial({color:col}));m.scale.y=depth;m.position.set(t.x-(w-1)/2,height-depth/2,t.z-(h-1)/2);root.add(m);
+   if(t.terrain==='forest'&&!units.some(u=>u.x===t.x&&u.z===t.z)){const tree=new THREE.Mesh(new THREE.ConeGeometry(.3,.85,6),new THREE.MeshToonMaterial({color:0x4b8259}));tree.position.set(m.position.x,height+.45,m.position.z);root.add(tree);}}
+  const models=new Map(),target=(u)=>u.team==='ally'?boss:{x:cx,z:cz};
+  for(const u of units){const m=figure(u);m.position.copy(world(u));if(u.boss&&!m.userData.bossScaled)m.scale.multiplyScalar(1.15);m.rotation.y=(2-facing(u,target(u)))*Math.PI/2;m.userData.bob=Math.random()*6;m.userData.bobBase=m.userData.body?.position.y||0;root.add(m);models.set(u.id,m);}
+  const ctx={fx:new THREE.Group(),models,world,speed:1.25,cancelled:false,particles:[],timers:[]};root.add(ctx.fx);
+  const finisher=allies.find(u=>u.heroId===finisherId)||allies[allies.length-1];
+  st={c,w,h,world,allies,enemies,boss,models,ctx,finisher,center:world({x:Math.round((cx+boss.x)/2),z:Math.round((cz+boss.z)/2)})};
+  // Opening frame: wide and high, so the first picture is never empty.
+  const span=Math.max(w,h);camPos.set(st.center.x+span*.6,span*.9,st.center.z+span*.6);camLook.copy(st.center);return true;
+ }
+ function popup(t,text,crit){const v=st.world(t).add(new THREE.Vector3(0,1.25,0)).project(camera),el=document.createElement('div');el.className='ed-float'+(crit?' ed-crit':'');el.textContent=text;el.style.left=`${(v.x+1)/2*host.clientWidth}px`;el.style.top=`${(1-v.y)/2*host.clientHeight}px`;floats.append(el);setTimeout(()=>el.remove(),1300);}
+ async function approach(u,t){const ctx=st.ctx,spots=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dz])=>({x:t.x+dx,z:t.z+dz})).filter(p=>p.x>=0&&p.z>=0&&p.x<st.w&&p.z<st.h&&![...st.allies,...st.enemies].some(v=>v!==u&&v.x===p.x&&v.z===p.z&&!st.models.get(v.id)?.userData.down)).sort((a,b)=>dist(a,u)-dist(b,u));const p=spots[0];if(!p)return;const m=st.models.get(u.id),start=m.position.clone(),end=st.world(p);u.x=p.x;u.z=p.z;m.rotation.y=(2-facing(u,t))*Math.PI/2;await tween(380,q=>{m.position.lerpVectors(start,end,q);m.position.y+=Math.sin(q*Math.PI)*.35;},ctx);}
+ async function fall(t,big=false){const ctx=st.ctx,m=st.models.get(t.id);if(!m)return;m.userData.down=true;const y=m.position.y,rot=m.rotation.x;await tween(big?900:550,q=>{m.rotation.x=rot-1.35*q;m.position.y=y-.25*q;},ctx);burst(t,0xfff1c0,big?40:24,ctx);await pause(250);m.visible=false;}
+ async function strike(u,t,skill,dmg,{crit=false,kill=false,hooks=null,last=false}={}){
+  const ctx=st.ctx;if(ctx.cancelled)return;const melee=skill.type==='physical'&&(skill.range||1)<=1;
+  if(melee&&dist(u,t)>1)await approach(u,t);if(ctx.cancelled)return;
+  st.models.get(u.id).rotation.y=(2-facing(u,t))*Math.PI/2;
+  const a=await attackWindup(u,t,skill,ctx);if(ctx.cancelled)return;
+  const projectile=usesProjectile(u,skill,a.melee),hasSpell=skill.type==='magic'||(skill.type==='physical'&&!!skill.element);
+  if(projectile)await flyProjectile(u,t,skill,ctx);if(ctx.cancelled)return;
+  const spell=hasSpell?spellEffect(t,skill,projectile,ctx):null;if(spell)await spell.impact;if(ctx.cancelled)return;
+  if(!spell)burst(t,crit?0xffe08a:0xf3da9d,crit?32:18,ctx);
+  popup(t,crit?`Critical!! ${dmg.toLocaleString()}`:dmg.toLocaleString(),crit);if(last)hooks?.onImpact?.();
+  await hitReaction(st.models.get(t.id),a.base,u,crit,ctx);await attackRecovery(a.m,a.base,a.forward,a.melee,ctx);
+  if(kill)await fall(t,t===st.boss);
+ }
+ async function play(hooks={}){
+  if(!st)return;const {ctx,boss,finisher,center,c}=st,power=60+c*45,rand=(k)=>Math.round(power*k*(.9+Math.random()*.2));
+  const fp=st.world(finisher),bp=st.world(boss),dir=fp.clone().sub(bp).setY(0).normalize(),side=new THREE.Vector3(-dir.z,0,dir.x),span=Math.max(st.w,st.h);
+  const orbit=(ang,rad,y,look=center)=>look.clone().add(new THREE.Vector3(Math.cos(ang)*rad,y,Math.sin(ang)*rad)),a0=Math.atan2(dir.z,dir.x)+.85;
+  const others=st.allies.filter(u=>u!==finisher),guards=st.enemies.filter(u=>u!==boss);
+  if(c===9){
+   // FINAL: look up at the last boss, every hero strikes in turn, the boss falls, the camera rises into the sky.
+   // Low angle from the boss's flank (not through the party), slowly circling toward the heroes.
+   await shot(bp.clone().addScaledVector(side,7).addScaledVector(dir,-1).setY(bp.y+.4),bp.clone().setY(bp.y+1.6));
+   shot(bp.clone().addScaledVector(side,5.4).addScaledVector(dir,2.2).setY(bp.y+.7),bp.clone().setY(bp.y+1.4),2400);await pause(2400);
+   // Wide enough to hold the boss and all six heroes.
+   hooks.onAction?.();const fight=bp.clone().lerp(fp,.4);shot(fight.clone().addScaledVector(side,8.5).addScaledVector(dir,5).setY(fight.y+7.5),fight,900).then(()=>shot(fight.clone().addScaledVector(side,6.5).addScaledVector(dir,7).setY(fight.y+6.5),fight,4200));
+   const order=[...others,finisher];
+   await Promise.all(order.map((u,i)=>pause(i*650).then(()=>strike(u,i===order.length-1?boss:(guards[i]&&i%2?guards[i]:boss),edSkillFor(u.heroId,c,true),rand(i===order.length-1?3.2:1.5),{crit:i===order.length-1,kill:i===order.length-1||!!(guards[i]&&i%2),hooks,last:i===order.length-1}))));
+   if(ctx.cancelled)return;
+   for(let i=0;i<5;i++)burst(boss,[0xffe08a,0xb3f3df,0xffffff,0xb784ff,0xff9a6b][i],30,ctx);
+   hooks.onRise?.();await shot(center.clone().addScaledVector(dir,span*.5).addScaledVector(side,span*.3).setY(span*2.4),center,4200,edEaseOut);
+   return;
+  }
+  await shot(fp.clone().addScaledVector(dir,4).addScaledVector(side,1.5).setY(fp.y+1.6),fp.clone().setY(fp.y+.7));
+  shot(fp.clone().addScaledVector(dir,3).addScaledVector(side,1.1).setY(fp.y+1.3),fp.clone().setY(fp.y+.7),1500);await pause(1500);
+  hooks.onAction?.();await shot(orbit(a0,7,4.4),center,700);shot(orbit(a0+.45,6.4,4.1),center,5200);
+  if(guards[0])await strike(others[0]||finisher,guards[0],edSkillFor((others[0]||finisher).heroId,c,false),rand(1.2),{kill:true});
+  if(others[1]||!guards[0])await strike(others[1]||others[0]||finisher,boss,edSkillFor((others[1]||others[0]||finisher).heroId,c,false),rand(1.4));
+  if(ctx.cancelled)return;
+  await shot(orbit(a0+.6,4.6,2.7,bp.clone().lerp(fp,.35)),bp.clone().lerp(fp,.35).setY(bp.y+.6),600);
+  await strike(finisher,boss,edSkillFor(finisher.heroId,c,true),rand(2.6),{crit:true,kill:true,hooks,last:true});
+  if(ctx.cancelled)return;
+  await shot(center.clone().addScaledVector(dir,span*.75).addScaledVector(side,span*.35).setY(span*1.05),center,1700,edEaseOut);
+ }
+ return {build,play,cancel:()=>{if(st){st.ctx.cancelled=true;for(const [t,res] of st.ctx.timers){clearTimeout(t);res();}}move?.done();move=null;},dispose(){clear();disposed=true;cancelAnimationFrame(frame);r.dispose();r.forceContextLoss();canvas.remove();}};
+}
 function showEnding(){runEnding();}
 function showEndingTest(back){
  let sample=true;
- const draw=()=>showSheet('엔딩 화면 (테스트용)',`<p>스토리 모드 엔딩을 미리 봅니다. 저장 데이터는 바뀌지 않습니다. 재생 중 화면을 탭하면 「건너뛰기」가 나타납니다.</p><h3>표시할 기록</h3><button class="choice ${sample?'on':''}" data-ending-data="sample">예시 수치<small>최종 보스까지 클리어한 것처럼 만든 임의 데이터</small></button><button class="choice ${sample?'':'on'}" data-ending-data="real">내 실제 기록<small>현재 저장 데이터의 통계 (v1.5.0부터 집계)</small></button><h3>시작 위치</h3>${[['opening','처음부터'],['recap','챕터 회상부터'],['stats','여정의 기록부터'],['credits','크레딧부터']].map(([id,n])=>`<button class="secondary" data-ending-start="${id}">${n}</button>`).join('')}`,()=>{
+ const draw=()=>showSheet('엔딩 화면 (테스트용)',`<p>스토리 모드 엔딩을 미리 봅니다. 저장 데이터는 바뀌지 않습니다. 재생 중 화면을 탭하면 「건너뛰기」가 나타납니다.</p><h3>표시할 기록</h3><button class="choice ${sample?'on':''}" data-ending-data="sample">예시 수치<small>최종 보스까지 클리어한 것처럼 만든 임의 데이터</small></button><button class="choice ${sample?'':'on'}" data-ending-data="real">내 실제 기록<small>현재 저장 데이터의 통계 (v1.5.0부터 집계)</small></button><h3>시작 위치</h3>${[['opening','처음부터'],['recap','챕터 회상부터'],['final','FINAL 전투부터'],['stats','여정의 기록부터'],['credits','크레딧부터']].map(([id,n])=>`<button class="secondary" data-ending-start="${id}">${n}</button>`).join('')}`,()=>{
   $('#sheet').querySelectorAll('[data-ending-data]').forEach(b=>b.onclick=()=>{sample=b.dataset.endingData==='sample';draw();});
-  $('#sheet').querySelectorAll('[data-ending-start]').forEach(b=>b.onclick=()=>runEnding({test:true,start:b.dataset.endingStart,sample,onExit:()=>showSettings(back)}));
+  $('#sheet').querySelectorAll('[data-ending-start]').forEach(b=>b.onclick=()=>{const final=b.dataset.endingStart==='final';runEnding({test:true,start:final?'recap':b.dataset.endingStart,recapFrom:final?9:0,sample,onExit:()=>showSettings(back)});});
  },{back:()=>showSettings(back)});
  draw();
 }
