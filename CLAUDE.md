@@ -44,7 +44,11 @@ The fit script at the end of index.html sets the layout class on `<html>` (`wind
 - `has-keyboard` (fine pointer): keyboard hints. Keys (game.js, e.code): WASD pan (`heldPanKeys`, applied in renderLoop),
   R rotate, F attack, G skills, H wait, 1-9 skills from the top (`pickSkillIndex`), Space end turn (again confirms),
   Enter confirm, Esc cancel. manifest `orientation` is `any`.
-Stage 2/3 (planned): two-column world map, inventory/shop/party, codex, story; landscape ending; hover highlights.
+Landscape screens (v1.5.1, CSS in index.html unless noted): world map grid (map left, info right); `SHEET_SPLITS` +
+`applySheetColumns()` (game.js) wrap 장비 보관함 / 여행자의 상점 / 파티 관리 into two scrolling `.sheet-col`s (column scroll
+positions are part of the sheet scroll memo; rotating unwraps); codex list two columns, codex detail and story via `:has()`;
+ending recap scene left / card right; `.panel-log` (recent battle log) in the panel; mouse hover tile marker in game.js.
+Phone portrait must stay unchanged: scope every landscape rule under `html.layout-landscape` (or `has-keyboard`).
 
 ## Revision management (required for every change)
 Version format `ver.MAJOR.MINOR.PATCH` (user-defined, starting at 1.0.0):
