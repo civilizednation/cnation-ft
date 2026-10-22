@@ -42,7 +42,8 @@ The fit script at the end of index.html sets the layout class on `<html>` (`wind
 - `layout-landscape`: tablet landscape and PC/laptop; 820px logical height scaled, width `--land-w` fills the screen;
   `#app` is a grid: viewport left, header + `.panel` (400px) right; sheets open as centered windows.
 - `has-keyboard` (fine pointer): keyboard hints. Keys (game.js, e.code): WASD pan (`heldPanKeys`, applied in renderLoop),
-  R rotate, F attack, G skills, H wait, 1-9 skills from the top (`pickSkillIndex`), Space end turn (again confirms),
+  R rotate, F attack, G skills, H wait, 1-9 skills from the top (`pickSkillIndex`), Space end turn; with a sheet open Space or Enter clicks `sheetConfirmButton()` (the only enabled `.primary` when the sheet has
+  ≤4 buttons besides ×, e.g. 판매/확인/적 턴으로 진행/다음 대화),
   Enter confirm, Esc cancel. manifest `orientation` is `any`.
 Landscape screens (v1.5.1, CSS in index.html unless noted): world map grid (map left, info right); `SHEET_SPLITS` +
 `applySheetColumns()` (game.js) wrap 장비 보관함 / 여행자의 상점 / 파티 관리 into two scrolling `.sheet-col`s (column scroll
