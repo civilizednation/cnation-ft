@@ -9,7 +9,7 @@ Writes <work_dir>/iter-N/ results, <work_dir>/tuning.json (latest) and history.j
 import json, math, os, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(__file__))
-from targets import DIFFS, GRADES, metrics, grade, score, target
+from targets import DIFFS, RUN_DIFFS, GRADES, metrics, grade, score, target
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -53,7 +53,7 @@ def simulate(it):
     tfile = os.path.join(outdir, 'tuning.json'); json.dump({'stages': tuning}, open(tfile, 'w'))
     jobs = []
     for r in range(RUNS):
-        for d in DIFFS:
+        for d in RUN_DIFFS:
             jobs.append(('story', d, r, '', outdir, tfile))
             jobs.append(('mission', d, r, '0,1,2,3,4', outdir, tfile))
             jobs.append(('mission', d, r, '5,6,7,8,9', outdir, tfile))
