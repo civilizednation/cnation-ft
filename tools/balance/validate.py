@@ -9,7 +9,7 @@ with per-battle results for each mode and the combined grade per battle and diff
 import json, os, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(__file__))
-from targets import DIFFS, GRADES, metrics, grade, score, target
+from targets import DIFFS, RUN_DIFFS, GRADES, metrics, grade, score, target
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.abspath(sys.argv[1]); RUNS = int(sys.argv[2]) if len(sys.argv) > 2 else 4
@@ -31,7 +31,7 @@ def run_job(args):
                        env={**os.environ, 'NODE_PATH': npm_root}, timeout=3600, capture_output=True)
     return out
 
-jobs = [(m, d, r, ch) for r in range(RUNS) for d in DIFFS for m, ch in (('story', ''), ('mission', '0,1,2,3,4'), ('mission', '5,6,7,8,9'))]
+jobs = [(m, d, r, ch) for r in range(RUNS) for d in RUN_DIFFS for m, ch in (('story', ''), ('mission', '0,1,2,3,4'), ('mission', '5,6,7,8,9'))]
 jobs.sort(key=lambda j: (j[0] != 'story', j[1] != 'tactical'))
 t0 = time.time()
 with ThreadPoolExecutor(PAR) as ex:

@@ -3,13 +3,17 @@ import statistics as st
 
 GRADES = ['매우쉬움', '쉬움', '적정', '어려움', '매우어려움', '클리어불가']
 DIFFS = ['story', 'normal', 'tactical']  # 하, 중, 상
+# Calibrate / validate only some difficulties: BAL_DIFFS=tactical
+import os
+RUN_DIFFS = [d for d in os.environ.get('BAL_DIFFS', ','.join(DIFFS)).split(',') if d in DIFFS]
 
 # role -> (하, 중, 상) target grade index
 TARGETS = {
     'prologue': {'first': (0, 0, 0), 'last': (2, 2, 3), 'other': (0, 1, 2)},
-    'chapter':  {'first': (1, 2, 2), 'last': (2, 2, 3), 'other': (1, 2, 2)},
-    'final':    {'first': (1, 2, 2), 'last': (3, 3, 4), 'other': (2, 3, 3)},
+    'chapter':  {'first': (1, 2, 3), 'last': (2, 2, 3), 'other': (1, 2, 3)},
+    'final':    {'first': (1, 2, 3), 'last': (3, 3, 4), 'other': (2, 3, 4)},
 }
+# v1.5.6: 상 is one grade above 중 in every battle after the prologue (중·하 unchanged).
 
 def role(stage_id):
     c, kind = int(stage_id[1]), stage_id[2]
