@@ -68,11 +68,14 @@ On every change that ships, bump the version and update ALL of:
    move the `현재` tag to it.
 Title screen shows `ver.x.y.z (rev. history)`; the link opens `revisions.html`.
 
-## Balance (v1.3.0)
+## Balance (v1.3.0, 상 retuned in v1.5.6)
 - `STAGE_TUNING` in game.js: per stage and difficulty `[hp, atk, enemy count delta, soften]`, shared by story and mission.
   The enemy per-hit damage cap scales with the stage's atk tuning (when > 1).
 - `MISSION_START_LEVELS`: missions start at the typical story party level of that chapter, so both modes match.
 - Target grades per battle role live in `tools/balance/targets.py` (prologue / chapters 1–8 / final × first / last / other).
+  v1.5.6: 상 targets one grade above 중 after the prologue (중·하 unchanged). `BAL_DIFFS=tactical` limits
+  calibrate/validate to one difficulty. Results are noisy with few runs; validate with 4 runs and ease battles the bot
+  rarely clears (any-win ≤ 50%) so every battle stays clearable.
 - Re-calibrate after balance-relevant changes: `python3 tools/balance/calibrate.py <work> [iters] [runs]`
   (Playwright + Chromium; ~15 min per iteration on 4 CPUs), then check with `tools/balance/validate.py <work> 4 <tuning.json>`
   and copy the tuning into `STAGE_TUNING`. The bot (`tools/balance/bot.js`) plays like an ordinary player.
