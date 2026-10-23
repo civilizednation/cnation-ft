@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.5.6';
+const GAME_VERSION='1.5.7';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -727,7 +727,7 @@ const STAGE_TUNING={
  'c3q0':{story:[1.31,1.61,2,0],normal:[1.15,1.25,1,0],tactical:[1.109,1.233,0,0]},
  'c3q1':{story:[1.57,2.1,3,0],normal:[1.44,1.83,1,0],tactical:[1.153,1.382,2,0]},
  'c3b':{story:[1.7,1.88,3,0],normal:[1.14,1.27,2,0],tactical:[1.115,1.192,1,0]},
- 'c4s0':{story:[1.69,2.56,3,0],normal:[1.45,1.87,3,0],tactical:[1.371,1.754,2,0]},
+ 'c4s0':{story:[1.69,2.56,3,0],normal:[1.45,1.87,3,0],tactical:[1.261,1.614,2,0]},
  'c4s1':{story:[1.55,2.08,3,0],normal:[1.4,1.69,3,0],tactical:[1.335,1.684,1,0]},
  'c4s2':{story:[1.61,2.2,3,0],normal:[1.42,1.68,3,0],tactical:[1.289,1.529,1,0]},
  'c4q0':{story:[1.84,2.48,3,0],normal:[1.42,1.68,3,0],tactical:[1.1,1.307,2,0]},
@@ -739,7 +739,7 @@ const STAGE_TUNING={
  'c5q0':{story:[1.57,2.2,3,0],normal:[1.18,1.35,2,0],tactical:[1.147,1.208,0,0]},
  'c5b':{story:[1.55,2.01,3,0],normal:[1.29,1.45,0,0],tactical:[1.041,1.16,1,0]},
  'c6s0':{story:[1.58,2.29,3,0],normal:[1.39,1.63,1,0],tactical:[1.317,1.561,1,0]},
- 'c6s1':{story:[1.45,1.95,3,0],normal:[1.29,1.59,2,0],tactical:[1.292,1.531,1,0]},
+ 'c6s1':{story:[1.45,1.95,3,0],normal:[1.29,1.59,2,0],tactical:[1.163,1.378,1,0]},
  'c6s2':{story:[1.5,2.09,3,0],normal:[1.4,1.74,1,0],tactical:[1.119,1.22,1,0]},
  'c6q0':{story:[1.38,1.81,3,0],normal:[1.48,1.61,1,0],tactical:[1.196,1.33,1,0]},
  'c6b':{story:[1.62,2.03,3,0],normal:[1.26,1.45,1,0],tactical:[1.127,1.214,1,0]},
@@ -753,7 +753,7 @@ const STAGE_TUNING={
  'c8s2':{story:[1.33,1.68,3,0],normal:[1.18,1.32,1,0],tactical:[1.07,1.079,0,0]},
  'c8q0':{story:[1.3,1.62,3,0],normal:[1.13,1.13,0,0],tactical:[1.082,1.175,-1,0]},
  'c8b':{story:[1.4,1.82,3,0],normal:[1.19,1.31,-1,0],tactical:[0.977,0.972,0,0]},
- 'c9s0':{story:[1.48,1.88,0,0],normal:[1.14,1.27,2,0],tactical:[1.235,1.317,0,0]},
+ 'c9s0':{story:[1.48,1.88,0,0],normal:[1.14,1.27,2,0],tactical:[1.087,1.159,0,0]},
  'c9s1':{story:[1.63,1.72,3,0],normal:[1.22,1.37,1,0],tactical:[1.13,1.131,0,0]},
  'c9s2':{story:[1.42,1.83,2,0],normal:[1.1,1.18,0,0],tactical:[1.027,1.025,0,0]},
  'c9q0':{story:[1.49,1.67,3,0],normal:[1.22,1.32,2,0],tactical:[1.022,1.027,0,0]}
