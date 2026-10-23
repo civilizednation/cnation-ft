@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.6.4';
+const GAME_VERSION='1.6.1';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -656,7 +656,7 @@ function spellSound(element,impact=false){if(!save.settings.sound)return;unlockA
 // v1.4.2: effect sounds go through sfxOut(); the ending lowers them with sfxScale so they do not cover its music.
 var sfxScale=1,sfxGainNode=null;
 function sfxOut(){if(sfxScale===1)return audioCtx.destination;if(!sfxGainNode||sfxGainNode.context!==audioCtx){sfxGainNode=audioCtx.createGain();sfxGainNode.connect(audioCtx.destination);}sfxGainNode.gain.value=sfxScale;return sfxGainNode;}
-// v1.6.1: every button press plays a short high "click" (딸깍, v1.6.4) at half the tap sound's level. A tap sfx() fired by the
+// v1.6.1: every button press plays a short high "click" (딸깍) at half the tap sound's level. A tap sfx() fired by the
 // same press is skipped so a button never sounds twice.
 let lastUiTick=-1e9;
 function uiTick(){if(!save.settings.sound)return;unlockAudio();if(!audioCtx)return;lastUiTick=performance.now();const t0=audioCtx.currentTime;
