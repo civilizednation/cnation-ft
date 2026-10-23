@@ -94,6 +94,20 @@ scripted with the game's attack animations through a ctx) above its record card;
 Each battle collects `battle.tally` and adds it to `save.stats` exactly once in `recordBattleStats` (finishBattle / retreat;
 `battle.tallied` guards it). Retry/retreat restore never touches `save.stats`.
 
+## Secret mission (v1.6.0)
+Hidden 3-battle chapter after the Final. `SECRET_STAGES` (ids x0–x2, kind 'secret', chapter 9) stay out of `STAGES`,
+the world map and the codex; look stages up with `stageById`. Bosses use `BOSS_PROFILES[10..12]` (`gimmick`: gaze/slam/pulse,
+`secretGimmick`) and `SECRET_BOSS_NAMES` — never add them to `BOSS_NAMES`/`MONSTERS` (the codex lists those).
+Unlock (`noteTrial` in `recordBattleStats`, state in `save.trial`): c9s0–c9s2 each won at the first attempt on 상 with no ally
+fallen (`battle.anyFallen`), story or mission. Then `afterVictory` → `offerSecret` (진행 / 엔딩·미션 결과) → `save.secret={stage}`
+→ `showSecretHub` (`showWorld` redirects there while `save.secret` exists). In a secret battle any fallen ally ends it as a defeat
+(`checkEnd`); retry uses the same map. Maps (`makeSecretBattle`): circle / ring / heart masks, outside tiles are terrain 'void'
+(never walkable or targetable: `neighbors`, `areaTiles`, `inRange`, `moveCost`). Clearing all three writes `LEGEND_KEY` and shows
+「아르카의 전설」 under the title logo (`refreshLegendTitle`). Players only see the unlock hint (help, codex); keep secret battle and
+monster details out of revisions.html.
+Owner test entry: settings sheet bottom, `#secretTest` below `#endingTest` (`startSecretTest`, sandbox save `SECRET_TEST_KEY`).
+It is temporary and will later become hidden like `#endingTest`; never mention it to players.
+
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
 Any new field on save/battle/unit must stay valid under these checks (or update them with migration in `normalizeSave`).
