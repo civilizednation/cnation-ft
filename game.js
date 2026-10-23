@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.5.6';
+const GAME_VERSION='1.5.7';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -739,7 +739,7 @@ const STAGE_TUNING={
  'c5q0':{story:[1.57,2.2,3,0],normal:[1.18,1.35,2,0],tactical:[1.147,1.208,0,0]},
  'c5b':{story:[1.55,2.01,3,0],normal:[1.29,1.45,0,0],tactical:[1.041,1.16,1,0]},
  'c6s0':{story:[1.58,2.29,3,0],normal:[1.39,1.63,1,0],tactical:[1.317,1.561,1,0]},
- 'c6s1':{story:[1.45,1.95,3,0],normal:[1.29,1.59,2,0],tactical:[1.292,1.531,1,0]},
+ 'c6s1':{story:[1.45,1.95,3,0],normal:[1.29,1.59,2,0],tactical:[1.163,1.378,1,0]},
  'c6s2':{story:[1.5,2.09,3,0],normal:[1.4,1.74,1,0],tactical:[1.119,1.22,1,0]},
  'c6q0':{story:[1.38,1.81,3,0],normal:[1.48,1.61,1,0],tactical:[1.196,1.33,1,0]},
  'c6b':{story:[1.62,2.03,3,0],normal:[1.26,1.45,1,0],tactical:[1.127,1.214,1,0]},
