@@ -1,8 +1,8 @@
 /* cnation TACTICS. Network-first updates; offline fallback. Version history: revisions.html */
-const VERSION='1.6.4';
+const VERSION='1.6.1';
 const CACHE='cnation-tactics-v'+VERSION;
 const BASE=new URL('./',self.location.href).href;
-const ASSETS=['index.html','vendor/three-r170.js?v=r170','game.js?v='+VERSION,'fonts/stylish.woff2?v=19','fonts/gowun-dodum.woff2?v=19'].map(p=>new URL(p,BASE).href);
+const ASSETS=['index.html','vendor/three-r170.js?v=r170','game.js?v='+VERSION,'fonts/stylish.woff2?v=20','fonts/gowun-dodum.woff2?v=20'].map(p=>new URL(p,BASE).href);
 const CACHED_PATHS=['','index.html','game.js','vendor/three-r170.js','manifest.webmanifest','icon.png','fonts/stylish.woff2','fonts/gowun-dodum.woff2'];
 self.addEventListener('message',event=>{if(event.data==='TACTICS_VERSION')event.ports[0]?.postMessage(VERSION);});
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
