@@ -107,7 +107,7 @@ fallen (`battle.anyFallen`), story or mission. Then `afterVictory` → `offerSec
 monster details out of revisions.html.
 Owner test entry: hidden invisible tap area `#secretTest.dev-spot` below `#endingTest` at the bottom of the settings sheet
 (`startSecretTest`, title screen only, sandbox save `SECRET_TEST_KEY`). Never show or mention it to players, including in revisions.html.
-Button presses play `uiTick()` (low thud, same peak level as the tap sound); `.dev-spot` buttons stay silent.
+Button presses play `uiTick()` (high two-part click 「딸깍」, half the tap volume; low tones are inaudible on phone speakers); `.dev-spot` buttons stay silent.
 
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
