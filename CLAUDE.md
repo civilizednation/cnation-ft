@@ -105,8 +105,9 @@ fallen (`battle.anyFallen`), story or mission. Then `afterVictory` → `offerSec
 (never walkable or targetable: `neighbors`, `areaTiles`, `inRange`, `moveCost`). Clearing all three writes `LEGEND_KEY` and shows
 「아르카의 전설」 under the title logo (`refreshLegendTitle`). Players only see the unlock hint (help, codex); keep secret battle and
 monster details out of revisions.html.
-Owner test entry: settings sheet bottom, `#secretTest` below `#endingTest` (`startSecretTest`, sandbox save `SECRET_TEST_KEY`).
-It is temporary and will later become hidden like `#endingTest`; never mention it to players.
+Owner test entry: hidden invisible tap area `#secretTest.dev-spot` below `#endingTest` at the bottom of the settings sheet
+(`startSecretTest`, title screen only, sandbox save `SECRET_TEST_KEY`). Never show or mention it to players, including in revisions.html.
+Button presses play `uiTick()` (low thud, half the tap volume); `.dev-spot` buttons stay silent.
 
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
