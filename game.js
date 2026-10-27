@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.6.7';
+const GAME_VERSION='1.6.8';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -193,14 +193,14 @@ const MONSTERS=[
 {name:'제국 석궁병',model:'archer',color:0x807b95,hp:56,atk:23,def:9,mag:8,res:10,range:4,minRange:2,move:3},
 {name:'에테르 망령',model:'ghost',color:0xaaa5df,hp:54,atk:14,def:7,mag:24,res:20,range:3,move:3,magic:true,element:'wind',immunity:'physical'},
 {name:'수호 골렘',model:'golem',color:0x8e9e93,hp:115,atk:26,def:22,mag:14,res:8,range:1,move:2,immunity:'magic'},
- {name:'화염 정령',model:'flameSpirit',color:0xe4a26c,hp:61,atk:15,def:7,mag:26,res:22,range:3,move:3,magic:true,element:'fire'},
+ {name:'화염 임프',model:'flameSpirit',color:0xe4a26c,hp:61,atk:15,def:7,mag:26,res:22,range:3,move:3,magic:true,element:'fire'},
 {name:'독거미',model:'spider',color:0x9a76ad,hp:57,atk:20,def:11,mag:12,res:12,range:1,move:5,status:'poison'},
 {name:'아르카 비룡',model:'dragon',color:0x6da9a4,hp:110,atk:28,def:17,mag:25,res:20,range:2,move:4,element:'wind'},
 {name:'붉은 진흙 슬라임',model:'slime',color:0xb98255,hp:57,atk:17,def:11,mag:8,res:8,range:1,move:3,element:'fire'},
 {name:'모래 약탈자',model:'goblin',color:0xc3975f,hp:69,atk:23,def:10,mag:8,res:9,range:1,move:4},
 {name:'회오리 매',model:'dragon',color:0x9cbea9,hp:54,atk:22,def:8,mag:19,res:13,range:2,move:5,element:'wind'},
 {name:'늪지 사냥꾼',model:'spider',color:0x62866d,hp:65,atk:21,def:12,mag:12,res:13,range:1,move:4,status:'poison',element:'water'},
-{name:'잿불 정령',model:'flameSpirit',color:0xd9684b,hp:72,atk:16,def:8,mag:29,res:21,range:3,move:3,magic:true,element:'fire'},
+{name:'잿불 임프',model:'flameSpirit',color:0xd9684b,hp:72,atk:16,def:8,mag:29,res:21,range:3,move:3,magic:true,element:'fire'},
 {name:'강철 척후병',model:'knight',color:0x6b8290,hp:83,atk:25,def:18,mag:9,res:11,range:1,move:4},
 {name:'사막 궁수',model:'archer',color:0xc49d68,hp:61,atk:26,def:9,mag:9,res:10,range:4,minRange:2,move:3},
 {name:'물안개 유령',model:'ghost',color:0x83bac4,hp:61,atk:14,def:8,mag:26,res:20,range:3,move:3,magic:true,element:'water',immunity:'physical'},
@@ -278,7 +278,9 @@ function repairPickups(b){
 // v1.2.2: declared before the startup save load below; referencing them earlier threw a
 // ReferenceError that made every saved game look invalid at startup (continue opened a blank game).
 const HERO_LEVEL_CAP=40,LEGACY_HERO_LEVEL_CAP=50;
-function normalizeSave(s){for(const p of s.party||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}for(const p of s.retryParty||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}s.skippedSides??=[];s.consumables??={hpSmall:0,hpMedium:s.potions||0,hpLarge:0,mpSmall:0,mpLarge:0};for(const side of STAGES.filter(v=>v.kind==='side'&&!s.completed.includes(v.id))){const next=`c${side.chapter}s${side.n+1}`;if((s.completed.includes(next)||s.battle?.stageId===next||s.retry?.stageId===next)&&!s.skippedSides.includes(side.id))s.skippedSides.push(side.id);}s.inventory??=[];s.lootSeq=Math.max(Number.isSafeInteger(s.lootSeq)?s.lootSeq:0,...s.inventory.map(v=>Number(v.uid.slice(5))));const seq={value:s.lootSeq};for(const p of s.party)migrateLegacyGear(p,s.inventory,seq);s.lootSeq=seq.value;if(s.retry){s.retryGold??=s.gold;s.retryInventory??=copy(s.inventory);s.retryConsumables??={hpSmall:0,hpMedium:s.retryPotions??s.potions??0,hpLarge:0,mpSmall:0,mpLarge:0};s.retryLootSeq=Math.max(Number.isSafeInteger(s.retryLootSeq)?s.retryLootSeq:0,...s.retryInventory.map(v=>Number(v.uid.slice(5))));const retrySeq={value:s.retryLootSeq};for(const p of s.retryParty||[])migrateLegacyGear(p,s.retryInventory,retrySeq);s.retryLootSeq=retrySeq.value;}for(const b of [s.battle,s.retry])if(b){if(s.completed.includes(b.stageId)&&!b.rewarded){b.replay=true;b.pickups=[];if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}}else if(!b.pickups)b.pickups=makePickups(b,stageById(b.stageId));else repairPickups(b);const party=b===s.retry?(s.retryParty||s.party):s.party,inventory=b===s.retry?(s.retryInventory||s.inventory):s.inventory;for(const u of b.units||[])if(u.team==='ally'){const record=party.find(p=>p.id===u.heroId);if(record){u.crit=equipmentCriticalRate(record,inventory);if(isPhysicalHero(u)){u.maxMp=physicalMaxMP(record,inventory);u.mp=Math.min(u.mp,u.maxMp);}}}}normalizeStats(s);return s;}
+// v1.6.8: fire monsters renamed (정령 now only names spirit-like, physically immune ghosts).
+function renameLegacyMonsters(b){if(!b)return;for(const u of b.units||[])if(u.team==='enemy'&&typeof u.name==='string')u.name=u.name.replace('화염 정령','화염 임프').replace('잿불 정령','잿불 임프');}
+function normalizeSave(s){renameLegacyMonsters(s.battle);renameLegacyMonsters(s.retry);for(const p of s.party||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}for(const p of s.retryParty||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}s.skippedSides??=[];s.consumables??={hpSmall:0,hpMedium:s.potions||0,hpLarge:0,mpSmall:0,mpLarge:0};for(const side of STAGES.filter(v=>v.kind==='side'&&!s.completed.includes(v.id))){const next=`c${side.chapter}s${side.n+1}`;if((s.completed.includes(next)||s.battle?.stageId===next||s.retry?.stageId===next)&&!s.skippedSides.includes(side.id))s.skippedSides.push(side.id);}s.inventory??=[];s.lootSeq=Math.max(Number.isSafeInteger(s.lootSeq)?s.lootSeq:0,...s.inventory.map(v=>Number(v.uid.slice(5))));const seq={value:s.lootSeq};for(const p of s.party)migrateLegacyGear(p,s.inventory,seq);s.lootSeq=seq.value;if(s.retry){s.retryGold??=s.gold;s.retryInventory??=copy(s.inventory);s.retryConsumables??={hpSmall:0,hpMedium:s.retryPotions??s.potions??0,hpLarge:0,mpSmall:0,mpLarge:0};s.retryLootSeq=Math.max(Number.isSafeInteger(s.retryLootSeq)?s.retryLootSeq:0,...s.retryInventory.map(v=>Number(v.uid.slice(5))));const retrySeq={value:s.retryLootSeq};for(const p of s.retryParty||[])migrateLegacyGear(p,s.retryInventory,retrySeq);s.retryLootSeq=retrySeq.value;}for(const b of [s.battle,s.retry])if(b){if(s.completed.includes(b.stageId)&&!b.rewarded){b.replay=true;b.pickups=[];if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}}else if(!b.pickups)b.pickups=makePickups(b,stageById(b.stageId));else repairPickups(b);const party=b===s.retry?(s.retryParty||s.party):s.party,inventory=b===s.retry?(s.retryInventory||s.inventory):s.inventory;for(const u of b.units||[])if(u.team==='ally'){const record=party.find(p=>p.id===u.heroId);if(record){u.crit=equipmentCriticalRate(record,inventory);if(isPhysicalHero(u)){u.maxMp=physicalMaxMP(record,inventory);u.mp=Math.min(u.mp,u.maxMp);}}}}normalizeStats(s);return s;}
 // v1.4.0: journey statistics for the ending. save.stats holds the running totals; each battle collects its own
 // numbers in battle.tally (saved with the battle, so a resumed battle keeps them) and adds them to save.stats
 // exactly once when it ends (battle.tallied). Retry/retreat restore does not touch save.stats, so losses stay counted.
@@ -1419,7 +1421,7 @@ if((u.classLevel||0)>0){for(const x of [-.24,.24])add('box',[x,.65,0],[.18,.15,.
   else if(variant==='모래 약탈자'){add('box',[0,.85,.24],[.33,.12,.08],0xe3c58b);add('cone',[.38,1.14,0],[.09,.3,.09],0xf0d69d);}
   else if(variant==='회오리 매'){add('cone',[0,.9,.36],[.1,.19,.29],0xe6c78b,Math.PI/2);for(const x of [-.43,.43])add('cone',[x,.66,-.2],[.28,.62,.07],0xd4e5cf,x<0?-.5:.5);}
   else if(variant==='늪지 사냥꾼')for(const x of [-.12,.12])add('cone',[x,.51,.39],[.07,.24,.06],0xe5dfb7,Math.PI);
-  else if(variant==='잿불 정령')for(const [x,z] of [[-.32,.1],[.31,-.08]])add('cone',[x,.79,z],[.1,.38,.1],0xffd27b);
+  else if(variant==='잿불 임프')for(const [x,z] of [[-.32,.1],[.31,-.08]])add('cone',[x,.79,z],[.1,.38,.1],0xffd27b);
   else if(variant==='강철 척후병'){for(const x of [-.38,.38])add('rock',[x,.89,-.02],[.18,.13,.21],0xa5b4b9);add('cone',[0,1.34,0],[.12,.3,.12],0x74858e);}
   else if(variant==='사막 궁수'){add('box',[0,.94,.17],[.38,.16,.1],0xdfc28b);add('cone',[0,1.28,-.06],[.14,.28,.14],0xb98c58);}
   else if(variant==='물안개 유령')for(const [x,z] of [[-.34,.15],[.32,-.12]])add('ball',[x,.58,z],[.1,.17,.1],0xb5e9ed);
