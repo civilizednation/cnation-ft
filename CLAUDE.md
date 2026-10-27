@@ -109,6 +109,12 @@ Owner test entry: hidden invisible tap area `#secretTest.dev-spot` below `#endin
 (`startSecretTest`, title screen only, sandbox save `SECRET_TEST_KEY`). Never show or mention it to players, including in revisions.html.
 Button presses play `uiTick()` (high two-part click 「딸깍」, half the tap volume; low tones are inaudible on phone speakers); `.dev-spot` buttons stay silent.
 
+## Rendering performance (v1.6.3–1.6.4)
+`renderLoop` renders at the display rate only while `sceneMoving()` (busy, `activeTweens`, particles, critical shot, spells,
+touch/keys via `wakeRender`, camera easing); otherwise 30 fps, 10 fps behind an open sheet (`frameInterval`). Standard quality
+uses `mainPixelRatio()` 1.5. Unit labels write to the DOM only on change (`setStyle`/`setText`). Battle elemental auras are three
+`InstancedMesh`es (`auraInstanceMesh`, `updateElementalAuras`, shared math in `auraParticle`); codex/ending keep `makeElementalAura`.
+
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
 Any new field on save/battle/unit must stay valid under these checks (or update them with migration in `normalizeSave`).

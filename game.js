@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.6.3';
+const GAME_VERSION='1.6.4';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -1567,102 +1567,83 @@ let activeSpell=null;
 let criticalShot=null,visualSlow=1,activeProjectile=null;
 const statusGroup=new THREE.Group(),statusModels=new Map();scene.add(statusGroup);
 const elementalAuraGroup=new THREE.Group(),elementalAuras=new Map();scene.add(elementalAuraGroup);
-function clearElementalAuras(){disposeGroup(elementalAuraGroup);elementalAuras.clear();}
-// v0.7.1: One shared elemental aura for combat, codex thumbnails and codex details.
-// Keep the visuals attached to the monster model and update them using the same clock.
-function makeElementalAura(u,parent=elementalAuraGroup){
- const kind=elementFamily(u.element);
- if(!['fire','water','wind'].includes(kind))return null;
- const group=new THREE.Group();
- const power=u.boss?1.5:u.elite?1.2:1;
+const AURA_MAX=360,auraInstances={},auraDummy=new THREE.Object3D(),auraColor=new THREE.Color();
+function clearElementalAuras(){disposeGroup(elementalAuraGroup);elementalAuras.clear();for(const m of Object.values(auraInstances))m.count=0;}
+// v0.7.1: One shared elemental aura look for combat, codex thumbnails and codex details (auraParticle).
+// v1.6.4: in battle every enemy's aura is drawn through one instanced mesh per element (3 draw calls in total,
+// instead of one per flame/drop/ribbon); particles fade in and out by size instead of opacity.
+// Codex previews and the ending keep separate meshes (makeElementalAura / animateElementalAura).
+const AURA_PALETTES={fire:[0xff3428,0xff7b20,0xffdc39,0xffac2c],water:[0x2aaaff,0x66d8ff,0xc5f7ff],wind:[0x79dcff,0xf2fdff,0xa9ecff]};
+function auraShape(u){const kind=elementFamily(u.element);if(!['fire','water','wind'].includes(kind))return null;
  // v0.7.2 visual tuning: retain fire density; halve water/wind density.
- // Shared by combat and codex previews to keep their appearance consistent.
  const fireCount=u.boss?14:u.elite?11:8;
- const count=kind==='fire'?fireCount:Math.ceil(fireCount*.5);
- const palettes={fire:[0xff3428,0xff7b20,0xffdc39,0xffac2c],water:[0x2aaaff,0x66d8ff,0xc5f7ff],wind:[0x79dcff,0xf2fdff,0xa9ecff]};
- for(let i=0;i<count;i++){
-  let geometry;
-  if(kind==='fire')geometry=new THREE.ConeGeometry(.072,.205,5);
-  else if(kind==='water'){
-   // Teardrop, not an orbiting orb: rounded bottom with a narrow pointed top.
-   geometry=new THREE.LatheGeometry([
-    new THREE.Vector2(0,-.093),new THREE.Vector2(.046,-.079),
-    new THREE.Vector2(.073,-.031),new THREE.Vector2(.061,.025),
-    new THREE.Vector2(.033,.076),new THREE.Vector2(0,.133)
-   ],7);
-  }else{
-   // A short curved ribbon reads as wind even in the small encyclopedia thumbnail.
-   const curve=new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-.19,-.025,0),new THREE.Vector3(-.095,.075,.018),
-    new THREE.Vector3(.025,.10,0),new THREE.Vector3(.16,.035,-.012),
-    new THREE.Vector3(.23,.055,0)
-   ]);
-   geometry=new THREE.TubeGeometry(curve,9,.022,4,false);
-  }
-  const color=palettes[kind][i%palettes[kind].length];
-  const material=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.88,depthWrite:false,side:THREE.DoubleSide,depthTest:true});
-  const m=new THREE.Mesh(geometry,material);
-  m.userData={index:i,phase:(i*.61803398875)%1};
-  group.add(m);
+ return {kind,power:u.boss?1.5:u.elite?1.2:1,bodyHeight:u.secretBoss?2.45:u.boss?1.8:u.model==='golem'?1.22:1.05,count:kind==='fire'?fireCount:Math.ceil(fireCount*.5)};}
+function auraGeometry(kind){
+ if(kind==='fire')return new THREE.ConeGeometry(.072,.205,5);
+ // Teardrop, not an orbiting orb: rounded bottom with a narrow pointed top.
+ if(kind==='water')return new THREE.LatheGeometry([new THREE.Vector2(0,-.093),new THREE.Vector2(.046,-.079),new THREE.Vector2(.073,-.031),new THREE.Vector2(.061,.025),new THREE.Vector2(.033,.076),new THREE.Vector2(0,.133)],7);
+ // A short curved ribbon reads as wind even in the small encyclopedia thumbnail.
+ return new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-.19,-.025,0),new THREE.Vector3(-.095,.075,.018),new THREE.Vector3(.025,.10,0),new THREE.Vector3(.16,.035,-.012),new THREE.Vector3(.23,.055,0)]),9,.022,4,false);}
+// Places particle i on o (position/rotation/scale, relative to the unit) and returns its opacity.
+function auraParticle(kind,power,bodyHeight,i,ms,o){
+ const seed=(i*.61803398875)%1,theta=i*2.39996323;
+ if(kind==='water'){
+  // Continuous gravity-driven drops: originate near the upper body, run down its sides and disappear at ground level.
+  const progress=(ms*.00046+seed)%1,h=bodyHeight*(.94-.89*progress),side=(i%2?1:-1),lateral=.21+(i%3)*.065,drift=progress*.055;
+  o.position.set(side*(lateral+drift)+Math.sin(theta)*.06,h,.12+Math.cos(theta)*.20);
+  o.rotation.set(0,0,side*(.07+.15*progress));
+  const sz=(i%3===0?1.23:1)*(.85+.25*Math.sin(progress*Math.PI));
+  o.scale.set(sz,1.13+progress*.42,sz);
+  return progress>.88?.94*(1-progress)/.12:.86+.10*Math.sin(progress*Math.PI);
  }
- group.userData={kind,power,bodyHeight:u.secretBoss?2.45:u.boss?1.8:u.model==='golem'?1.22:1.05};
+ if(kind==='fire'){
+  const progress=(ms*.00036+seed)%1,r=(.29+.06*Math.sin(theta))*power;
+  o.position.set(Math.cos(theta)*r,.15+progress*bodyHeight*.88,Math.sin(theta)*r);
+  o.rotation.set(0,0,Math.sin(ms*.005+i)*.24);
+  o.scale.set(.95,1.1+Math.sin(ms*.009+i)*.25,.95);
+  return (.80+.15*Math.abs(Math.sin(ms*.006+i)))*(progress>.84?(1-progress)/.16:1);
+ }
+ const t=ms*.0015+theta,r=(.38+.055*Math.sin(t*.7+i))*power;
+ o.position.set(Math.cos(t)*r,.20+((ms*.00024+seed)%1)*bodyHeight*.83,Math.sin(t)*r);
+ o.rotation.set(Math.sin(t*.8)*.20,-t+.65,Math.cos(t)*.30);
+ o.scale.setScalar(1.0+power*.24);
+ return .75+.18*Math.abs(Math.sin(t*1.4));
+}
+function makeElementalAura(u,parent=elementalAuraGroup){
+ const shape=auraShape(u);if(!shape)return null;
+ const group=new THREE.Group();
+ for(let i=0;i<shape.count;i++){
+  const color=AURA_PALETTES[shape.kind][i%AURA_PALETTES[shape.kind].length];
+  const material=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.88,depthWrite:false,side:THREE.DoubleSide,depthTest:true});
+  group.add(new THREE.Mesh(auraGeometry(shape.kind),material));
+ }
+ group.userData=shape;
  parent.add(group);
  return group;
 }
 function animateElementalAura(group,ms){
  if(!group)return;
  const {kind,power,bodyHeight}=group.userData;
- const count=group.children.length;
- group.children.forEach((m,i)=>{
-  const seed=m.userData.phase;
-  const theta=i*2.39996323;
-  if(kind==='water'){
-   // Continuous gravity-driven drops: originate near the upper body, run down
-   // its sides and disappear at ground level, then restart at the top.
-   const progress=(ms*.00046+seed)%1;
-   const h=bodyHeight*(.94-.89*progress);
-   const side=(i%2?1:-1);
-   const lateral=.21+(i%3)*.065;
-   const drift=progress*.055;
-   m.position.set(side*(lateral+drift)+Math.sin(theta)*.06,h,
-    .12+Math.cos(theta)*.20);
-   m.rotation.set(0,0,side*(.07+.15*progress));
-   const sz=(i%3===0?1.23:1)*(.85+.25*Math.sin(progress*Math.PI));
-   m.scale.set(sz,1.13+progress*.42,sz);
-   m.material.opacity=progress>.88?.94*(1-progress)/.12:.86+.10*Math.sin(progress*Math.PI);
-  }else if(kind==='fire'){
-   const progress=(ms*.00036+seed)%1;
-   const r=(.29+.06*Math.sin(theta))*power;
-   m.position.set(Math.cos(theta)*r,.15+progress*bodyHeight*.88,Math.sin(theta)*r);
-   m.rotation.z=Math.sin(ms*.005+i)*.24;
-   m.scale.set(.95,1.1+Math.sin(ms*.009+i)*.25,.95);
-   m.material.opacity=(.80+.15*Math.abs(Math.sin(ms*.006+i)))*(progress>.84?(1-progress)/.16:1);
-  }else{
-   const t=ms*.0015+theta;
-   const r=(.38+.055*Math.sin(t*.7+i))*power;
-   m.position.set(Math.cos(t)*r,.20+((ms*.00024+seed)%1)*bodyHeight*.83,Math.sin(t)*r);
-   m.rotation.set(Math.sin(t*.8)*.20,-t+.65,Math.cos(t)*.30);
-   m.scale.setScalar(1.0+power*.24);
-   m.material.opacity=.75+.18*Math.abs(Math.sin(t*1.4));
-  }
- });
+ group.children.forEach((m,i)=>{m.material.opacity=auraParticle(kind,power,bodyHeight,i,ms,m);});
+}
+function auraInstanceMesh(kind){
+ if(auraInstances[kind])return auraInstances[kind];
+ const m=new THREE.InstancedMesh(auraGeometry(kind),new THREE.MeshBasicMaterial({transparent:true,opacity:.88,depthWrite:false,side:THREE.DoubleSide}),AURA_MAX);
+ m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.setColorAt(0,auraColor.setHex(0xffffff));m.count=0;m.frustumCulled=false;scene.add(m);auraInstances[kind]=m;return m;
 }
 function updateElementalAuras(ms){
- const wanted=new Set();
+ const used={fire:0,water:0,wind:0};
  for(const u of battle?.units||[]){
   if(isTitle||u.team!=='enemy'||u.hp<=0)continue;
-  const kind=elementFamily(u.element);
-  if(!['fire','water','wind'].includes(kind))continue;
-  const model=models.get(u.id);if(!model)continue;
-  wanted.add(u.id);
-  let group=elementalAuras.get(u.id);
-  if(!group){group=makeElementalAura(u);elementalAuras.set(u.id,group);}
-  group.position.copy(model.position);
-  animateElementalAura(group,ms);
+  const shape=auraShape(u),model=shape&&models.get(u.id);if(!model||!model.visible)continue;
+  const mesh=auraInstanceMesh(shape.kind),palette=AURA_PALETTES[shape.kind];
+  for(let i=0;i<shape.count&&used[shape.kind]<AURA_MAX;i++){
+   const fade=clamp(auraParticle(shape.kind,shape.power,shape.bodyHeight,i,ms,auraDummy)/.8,0,1);
+   auraDummy.scale.multiplyScalar(fade);auraDummy.position.add(model.position);auraDummy.updateMatrix();
+   const n=used[shape.kind]++;mesh.setMatrixAt(n,auraDummy.matrix);mesh.setColorAt(n,auraColor.setHex(palette[i%palette.length]));
+  }
  }
- for(const [id,g] of elementalAuras)if(!wanted.has(id)){
-  elementalAuraGroup.remove(g);disposeGroup(g);elementalAuras.delete(id);
- }
+ for(const [kind,m] of Object.entries(auraInstances)){m.count=used[kind];m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;}
 }
 
 const STATUS_COLORS={burn:0xff792b,poison:0x96e25a,freeze:0x9bddff,stun:0xffe877,sleep:0xc0a2f0,silence:0xec81c0};
