@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.6.5';
+const GAME_VERSION='1.6.6';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -2217,12 +2217,21 @@ function showShop(){
  if(!battle||!['player','enemy'].includes(battle.phase))playBgm('town');
  const locked=!!battle&&['player','enemy'].includes(battle.phase),chapter=unlockedChapter(),tier=gearTierForChapter(chapter);
  const stock=GEAR.filter(g=>!g.legacy&&g.band===tier&&g.tier<2&&g.variant===0);
+ // v1.6.6: buy recommendations, in the equipment screen's style. A shop item is recommended for a hero when it beats
+ // what the hero wears (gearUpgradeAdvice) and no unworn item already in the bag would do as well for free.
+ const worn=new Set(save.party.flatMap(p=>p.equipped||[]).filter(Boolean)),members=HEROES.filter(h=>h.join<=chapter).map(h=>heroRecord(h.id));
+ const ownedBest=(p,slot)=>Math.max(0,...save.inventory.filter(r=>!worn.has(r.uid)).map(r=>gearUpgradeAdvice(p,GEAR.find(g=>g.id===r.gearId))).filter(a=>a&&(a.slot===slot||(slot>=2&&a.slot>=2))).map(a=>a.gain));
+ // Only each hero's single best affordable pick per slot group (weapon / armor / accessory) is recommended.
+ const buyAdvice=new Map();if(!locked)for(const p of members){const best={};for(const g of stock){if(save.gold<gearPrice(g))continue;const a=gearUpgradeAdvice(p,g);if(!a||a.gain<=ownedBest(p,a.slot)+.01)continue;const group=Math.min(a.slot,2);if(!best[group]||a.gain>best[group].a.gain)best[group]={g,a};}for(const {g,a} of Object.values(best)){if(!buyAdvice.has(g.id))buyAdvice.set(g.id,[]);buyAdvice.get(g.id).push({name:heroDef(p.id).name,...a});}}
+ for(const rows of buyAdvice.values())rows.sort((a,b)=>b.gain-a.gain);
+ const shown=[...stock].sort((a,b)=>Number(buyAdvice.has(b.id))-Number(buyAdvice.has(a.id))||(buyAdvice.get(b.id)?.[0].gain||0)-(buyAdvice.get(a.id)?.[0].gain||0));
+ const shopRow=g=>{const rows=buyAdvice.get(g.id),need=rows?.length||0;return `<div class="gear-row ${rows?'gear-upgrade':''}">${gearThumb(g)}<div class="gear-copy"><b>${g.name}</b> <span class="badge">${TIERS[g.tier]}</span>${rows?` <span class="gear-recommend-badge">★ 구매 추천 · ${rows.map(r=>r.name).join(' · ')}</span>`:''}<small>${rows?`${rows.map(r=>`<span class="gear-recommend-reason">${r.name} ${EQUIP_SLOT_NAMES[r.slot]} ${r.kind==='교체 추천'?'교체':'장착'} · ${r.label}</span>`).join('<br>')}<br>${need>1?`${need}명 모두 바꾸려면 ${need}개 · ${(gearPrice(g)*need).toLocaleString()} G${save.gold<gearPrice(g)*need?' (골드 부족)':''}<br>`:''}`:''}${GEAR_KINDS[g.kind].label} · ${gearBonusText(g)}<br>사용: ${gearUsers(g)}</small><button class="secondary" data-buy-gear="${g.id}" ${locked||save.gold<gearPrice(g)||save.inventory.length>=1000?'disabled':''}>${gearPrice(g).toLocaleString()} G · 구입</button></div></div>`;};
  showSheet('여행자의 상점',`
   <div class="row"><span>체력·마력 회복약</span><span class="gold">${save.gold.toLocaleString()} G</span></div>
   <p class="footnote">${CHAPTERS[chapter][0]} 진행 기준 재고입니다. 새로운 성장 구간에 도착하면 더 강한 기본형이 열립니다. 일반·희귀 대표 장비를 판매하며 유니크는 전장에서만 획득합니다. 구입한 장비는 파티 관리에서 장착하세요.</p>
   ${Object.entries(CONSUMABLES).map(([id,v])=>`<button class="choice" data-buy-consumable="${id}" ${locked||save.gold<v.price?'disabled':''}><strong>${v.price} G</strong>${v.name} · 보유 ${save.consumables[id]}개<small>대상의 최대 ${v.stat.toUpperCase()} ${Math.round(v.ratio*100)}% 회복 · 전투 중 행동 1회 사용</small></button>`).join('')}
-  <p class="footnote">현재 파티 장비 효율 ${partyEquipmentEfficiency(chapter).percent}%</p><h3>무기 · 방어구 · 악세서리</h3>
-  ${stock.map(g=>`<div class="gear-row">${gearThumb(g)}<div class="gear-copy"><b>${g.name}</b> <span class="badge">${TIERS[g.tier]}</span><small>${GEAR_KINDS[g.kind].label} · ${gearBonusText(g)}<br>사용: ${gearUsers(g)}</small><button class="secondary" data-buy-gear="${g.id}" ${locked||save.gold<gearPrice(g)||save.inventory.length>=1000?'disabled':''}>${gearPrice(g).toLocaleString()} G · 구입</button></div></div>`).join('')}
+  <p class="footnote">현재 파티 장비 효율 ${partyEquipmentEfficiency(chapter).percent}%</p><h3>무기 · 방어구 · 악세서리 ${buyAdvice.size?`<span class="gear-upgrade-count">★ 구매 추천 ${buyAdvice.size}개</span>`:''}</h3>${buyAdvice.size?'<p class="footnote">★ 구매 추천: 지금 골드로 살 수 있고, 표시된 캐릭터가 착용 중인 장비보다 역할에 맞는 능력치가 좋아지는 장비입니다. 캐릭터마다 무기·방어구·악세서리별로 가장 좋은 한 가지만 추천하며, 보관함에 이미 더 좋은 미장착 장비가 있으면 추천하지 않습니다. 다른 능력치는 줄어들 수 있으니 장착할 때 최종 수치를 확인하세요.</p>':''}
+  ${shown.map(shopRow).join('')}
   <button class="secondary" id="shopParty">파티 관리 · 장비 장착</button>
   ${locked?'<p class="footnote">전투가 끝나면 구매할 수 있습니다.</p>':''}`,()=>{
    $('#sheet').querySelectorAll('[data-buy-consumable]').forEach(b=>b.onclick=()=>{const id=b.dataset.buyConsumable,v=CONSUMABLES[id];if(locked||!v||save.gold<v.price){toast('골드가 부족합니다.');return;}save.gold-=v.price;save.consumables[id]++;persist();sfx();showShop();});
