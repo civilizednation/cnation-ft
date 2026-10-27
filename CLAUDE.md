@@ -107,7 +107,9 @@ fallen (`battle.anyFallen`), story or mission. Then `afterVictory` → `offerSec
 monster details out of revisions.html.
 Owner test entry: hidden invisible tap area `#secretTest.dev-spot` below `#endingTest` at the bottom of the settings sheet
 (`startSecretTest`, title screen only, sandbox save `SECRET_TEST_KEY`). Never show or mention it to players, including in revisions.html.
-Button presses play `uiTick()` (high two-part click 「딸깍」, half the tap volume; low tones are inaudible on phone speakers); `.dev-spot` buttons stay silent.
+Button presses play `uiTick(clickKind(b))`: 'pick' (soft tok) for selecting buttons, 'done' (wooden tok) for `.primary`, `#wait`/`#endTurn` and
+finish/cancel words (`CLICK_DONE_WORDS`: 확인·취소·닫기·시작·…). Fixed-pitch noise clicks only (pitch sweeps sound like a chirp; low tones are
+inaudible on phone speakers). `.dev-spot` buttons stay silent.
 
 ## Rendering performance (v1.6.3–1.6.4)
 `renderLoop` renders at the display rate only while `sceneMoving()` (busy, `activeTweens`, particles, critical shot, spells,
