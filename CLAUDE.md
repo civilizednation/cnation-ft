@@ -116,6 +116,7 @@ inaudible on phone speakers). `.dev-spot` buttons stay silent.
 touch/keys via `wakeRender`, camera easing); otherwise 30 fps, 10 fps behind an open sheet (`frameInterval`). Standard quality
 uses `mainPixelRatio()` 1.5. Unit labels write to the DOM only on change (`setStyle`/`setText`). Battle elemental auras are three
 `InstancedMesh`es (`auraInstanceMesh`, `updateElementalAuras`, shared math in `auraParticle`); codex/ending keep `makeElementalAura`.
+Ghost-model monsters (physical immunity) use the shared translucent `ghostMat` instead of `sharedMat`; `disposeGroup` never disposes either.
 
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.

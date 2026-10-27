@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.6.6';
+const GAME_VERSION='1.6.7';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -1051,6 +1051,8 @@ let terrainGroup=new THREE.Group(),unitGroup=new THREE.Group(),highlightGroup=ne
 const models=new Map(),tileMeshes=[],labelEls=new Map(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2(),clock=new THREE.Clock();let angle=Math.PI/4,targetAngle=Math.PI/4,zoom=1,pan=new THREE.Vector3(),camLook=new THREE.Vector3(),camFocus=null,lastFrame=0,animId,particles=[],impactShake=0;
 function maxBattleZoom(){return battle?.size>=14?3.6:battle?.size>=12?3.1:2.6;}
 const sharedMat=new THREE.MeshToonMaterial({vertexColors:true});
+// v1.6.7: ghost-type monsters (physical immunity) are drawn see-through so they read as ghosts at a glance.
+const ghostMat=new THREE.MeshToonMaterial({vertexColors:true,transparent:true,opacity:.6,depthWrite:false,emissive:0x1d2340});
 const geo={box:new THREE.BoxGeometry(1,1,1),ball:new THREE.SphereGeometry(1,8,6),cone:new THREE.ConeGeometry(1,1,7),cyl:new THREE.CylinderGeometry(1,1,1,7),rock:new THREE.DodecahedronGeometry(1,0),torus:new THREE.TorusGeometry(1,.16,5,12)};
 const lootGroup=new THREE.Group();scene.add(lootGroup);
 function gearParts(g){
@@ -1428,10 +1430,10 @@ if((u.classLevel||0)>0){for(const x of [-.24,.24])add('box',[x,.65,0],[.18,.15,.
   else if(variant==='심연의 파수꾼'){add('box',[0,.9,.31],[.36,.08,.05],0x8be6e5);for(const x of [-.34,.34])add('rock',[x,1.1,-.04],[.13,.2,.14],0x507b85);}
  }
  if(u.boss){const id=u.bossId||0;if(id===1){add('cone',[0,1.25,0],[.2,.34,.2],0xd76554);add('box',[.52,.55,.08],[.1,.77,.07],0xf4d1a2);}else if(id===2){for(const x of [-.32,.32])add('cone',[x,1.16,0],[.18,.4,.18],0xe3ecf4);}else if(id===3){for(const x of [-.4,.4])add('ball',[x,1.16,0],[.2,.18,.2],0xa0c47b);}else if(id===4){for(const x of [-.2,0,.2])add('rock',[x,1.29,0],[.1,.16,.1],0xb39dd2);}else if(id===5){for(const x of [-.44,.44]){add('cyl',[x,.87,-.06],[.16,.48,.16],0x454e55);add('ball',[x,.87,.2],[.1,.1,.04],0xffb96e);}}else if(id===6){for(const x of [-.32,.32]){add('cyl',[x,1.15,0],[.06,.5,.06],0x5e8b91);add('rock',[x,1.45,0],[.13,.19,.13],0x9aebed);}}else if(id===7){for(const x of [-.56,.56])add('cone',[x,.64,-.15],[.35,.78,.1],0x866baf,x<0?-1:1);}else if(id===8){for(const x of [-.22,0,.22])add('cone',[x,1.28,0],[.1,.28,.1],0xffd889);add('box',[0,.53,-.2],[.72,.68,.08],0x8a5e6a);}else if(id===9){for(const x of [-.47,.47])add('rock',[x,1.12,0],[.18,.25,.18],0xb5f3e6);}}
- const g=new THREE.Group(),body=new THREE.Mesh(bake(p),sharedMat);g.add(body);if(u.secretBoss)body.scale.setScalar(2.05);else if(u.boss)body.scale.setScalar(1.5);else if(u.size==='giant')body.scale.setScalar(u.elite?1.45:1.35);else if(u.size==='tiny')body.scale.setScalar(.72);else if(u.elite)body.scale.setScalar(1.16);g.userData.body=body;const ring=new THREE.Mesh(new THREE.RingGeometry(.34,.39,24),new THREE.MeshBasicMaterial({color:u.team==='ally'?0x8fe5b4:u.elite?0xffd378:0xf0a58c,transparent:true,opacity:.75,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.024;g.add(ring);const shadow=new THREE.Mesh(new THREE.CircleGeometry(.35,20),new THREE.MeshBasicMaterial({color:0x163338,transparent:true,opacity:.27,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.018;g.add(shadow);return g;}
+ const g=new THREE.Group(),body=new THREE.Mesh(bake(p),!u.heroId&&u.model==='ghost'?ghostMat:sharedMat);g.add(body);if(u.secretBoss)body.scale.setScalar(2.05);else if(u.boss)body.scale.setScalar(1.5);else if(u.size==='giant')body.scale.setScalar(u.elite?1.45:1.35);else if(u.size==='tiny')body.scale.setScalar(.72);else if(u.elite)body.scale.setScalar(1.16);g.userData.body=body;const ring=new THREE.Mesh(new THREE.RingGeometry(.34,.39,24),new THREE.MeshBasicMaterial({color:u.team==='ally'?0x8fe5b4:u.elite?0xffd378:0xf0a58c,transparent:true,opacity:.75,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.024;g.add(ring);const shadow=new THREE.Mesh(new THREE.CircleGeometry(.35,20),new THREE.MeshBasicMaterial({color:0x163338,transparent:true,opacity:.27,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.018;g.add(shadow);return g;}
 function elevation(t){return t.height*.33;}
 function toWorld(t){return new THREE.Vector3(t.x-(mapWidth(battle)-1)/2,elevation(t)+.02,t.z-(mapHeight(battle)-1)/2);}
-function disposeGroup(g){while(g.children.length){const child=g.children[0];child.traverse(o=>{if(o.geometry&&!Object.values(geo).includes(o.geometry))o.geometry.dispose();if(o.material&&o.material!==sharedMat)o.material.dispose();});g.remove(child);}}
+function disposeGroup(g){while(g.children.length){const child=g.children[0];child.traverse(o=>{if(o.geometry&&!Object.values(geo).includes(o.geometry))o.geometry.dispose();if(o.material&&o.material!==sharedMat&&o.material!==ghostMat)o.material.dispose();});g.remove(child);}}
 let inspectedEnemy=null,inspectedItem=null,lastHitReport=null;
 function createUnitLabel(u){const el=document.createElement('div');el.className=`unit-label ${u.team}`;el.dataset.unitId=u.id;el.innerHTML='<div class="done"></div><div class="status-signs"></div><div class="hp-line"><div class="hp"><i></i></div><span class="hp-value"></span></div>';$('#labels').append(el);labelEls.set(u.id,el);return el;}
 // Freeze the approach order for each enemy phase so later enemies cannot
