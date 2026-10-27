@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.6.8';
+const GAME_VERSION='1.6.9';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -209,7 +209,7 @@ const MONSTERS=[
 {name:'황혼의 추적자',model:'wolf',color:0x78687e,hp:78,atk:30,def:11,mag:13,res:14,range:1,move:5},
 {name:'화염 포격병',model:'archer',color:0xab6656,hp:73,atk:24,def:12,mag:29,res:17,range:4,minRange:2,move:3,magic:true,element:'fire'},
 {name:'심연의 파수꾼',model:'sentinel',color:0x587b88,hp:102,atk:29,def:20,mag:23,res:19,range:2,move:3,element:'water'},
-{name:'검은 숲 정령',model:'treant',color:0x526c62,hp:94,atk:23,def:16,mag:27,res:18,range:3,move:2,magic:true,element:'wind'}
+{name:'검은 숲 고목',model:'treant',color:0x526c62,hp:94,atk:23,def:16,mag:27,res:18,range:3,move:2,magic:true,element:'wind'}
 ,
 {name:'화염 늑대',model:'wolf',color:0xe05a35,hp:70,atk:25,def:9,mag:8,res:10,range:1,move:6,element:'fire'},
 {name:'잿불 궁수',model:'archer',color:0xc45b3a,hp:58,atk:24,def:8,mag:10,res:11,range:4,minRange:2,move:3,element:'fire'},
@@ -278,8 +278,8 @@ function repairPickups(b){
 // v1.2.2: declared before the startup save load below; referencing them earlier threw a
 // ReferenceError that made every saved game look invalid at startup (continue opened a blank game).
 const HERO_LEVEL_CAP=40,LEGACY_HERO_LEVEL_CAP=50;
-// v1.6.8: fire monsters renamed (정령 now only names spirit-like, physically immune ghosts).
-function renameLegacyMonsters(b){if(!b)return;for(const u of b.units||[])if(u.team==='enemy'&&typeof u.name==='string')u.name=u.name.replace('화염 정령','화염 임프').replace('잿불 정령','잿불 임프');}
+// v1.6.8–1.6.9: monsters renamed so 정령 only names spirit-like, physically immune ghosts.
+function renameLegacyMonsters(b){if(!b)return;for(const u of b.units||[])if(u.team==='enemy'&&typeof u.name==='string')u.name=u.name.replace('화염 정령','화염 임프').replace('잿불 정령','잿불 임프').replace('검은 숲 정령','검은 숲 고목');}
 function normalizeSave(s){renameLegacyMonsters(s.battle);renameLegacyMonsters(s.retry);for(const p of s.party||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}for(const p of s.retryParty||[]){clampHeroProgress(p);p.branch=0;p.classLevel=promotionRankFor(p.id,p.level);}s.skippedSides??=[];s.consumables??={hpSmall:0,hpMedium:s.potions||0,hpLarge:0,mpSmall:0,mpLarge:0};for(const side of STAGES.filter(v=>v.kind==='side'&&!s.completed.includes(v.id))){const next=`c${side.chapter}s${side.n+1}`;if((s.completed.includes(next)||s.battle?.stageId===next||s.retry?.stageId===next)&&!s.skippedSides.includes(side.id))s.skippedSides.push(side.id);}s.inventory??=[];s.lootSeq=Math.max(Number.isSafeInteger(s.lootSeq)?s.lootSeq:0,...s.inventory.map(v=>Number(v.uid.slice(5))));const seq={value:s.lootSeq};for(const p of s.party)migrateLegacyGear(p,s.inventory,seq);s.lootSeq=seq.value;if(s.retry){s.retryGold??=s.gold;s.retryInventory??=copy(s.inventory);s.retryConsumables??={hpSmall:0,hpMedium:s.retryPotions??s.potions??0,hpLarge:0,mpSmall:0,mpLarge:0};s.retryLootSeq=Math.max(Number.isSafeInteger(s.retryLootSeq)?s.retryLootSeq:0,...s.retryInventory.map(v=>Number(v.uid.slice(5))));const retrySeq={value:s.retryLootSeq};for(const p of s.retryParty||[])migrateLegacyGear(p,s.retryInventory,retrySeq);s.retryLootSeq=retrySeq.value;}for(const b of [s.battle,s.retry])if(b){if(s.completed.includes(b.stageId)&&!b.rewarded){b.replay=true;b.pickups=[];if(b.mapRules){b.mapRules.itemCount=0;b.mapRules.lootKind='none';}}else if(!b.pickups)b.pickups=makePickups(b,stageById(b.stageId));else repairPickups(b);const party=b===s.retry?(s.retryParty||s.party):s.party,inventory=b===s.retry?(s.retryInventory||s.inventory):s.inventory;for(const u of b.units||[])if(u.team==='ally'){const record=party.find(p=>p.id===u.heroId);if(record){u.crit=equipmentCriticalRate(record,inventory);if(isPhysicalHero(u)){u.maxMp=physicalMaxMP(record,inventory);u.mp=Math.min(u.mp,u.maxMp);}}}}normalizeStats(s);return s;}
 // v1.4.0: journey statistics for the ending. save.stats holds the running totals; each battle collects its own
 // numbers in battle.tally (saved with the battle, so a resumed battle keeps them) and adds them to save.stats
@@ -1426,7 +1426,7 @@ if((u.classLevel||0)>0){for(const x of [-.24,.24])add('box',[x,.65,0],[.18,.15,.
   else if(variant==='사막 궁수'){add('box',[0,.94,.17],[.38,.16,.1],0xdfc28b);add('cone',[0,1.28,-.06],[.14,.28,.14],0xb98c58);}
   else if(variant==='물안개 유령')for(const [x,z] of [[-.34,.15],[.32,-.12]])add('ball',[x,.58,z],[.1,.17,.1],0xb5e9ed);
   else if(variant==='사암 골렘'){for(const x of [-.37,.37])add('rock',[x,1.08,0],[.18,.24,.17],0xe0c18b);add('rock',[0,1.3,0],[.12,.22,.12],0xf2d7a5);}
-  else if(variant==='가시 덩굴병'||variant==='검은 숲 정령'){for(const x of [-.43,.43])add('cone',[x,.88,.07],[.11,.35,.11],variant==='검은 숲 정령'?0x97b3a6:0xc2a872,x<0?-.6:.6);}
+  else if(variant==='가시 덩굴병'||variant==='검은 숲 고목'){for(const x of [-.43,.43])add('cone',[x,.88,.07],[.11,.35,.11],variant==='검은 숲 고목'?0x97b3a6:0xc2a872,x<0?-.6:.6);}
   else if(variant==='황혼의 추적자')for(const x of [-.18,.18])add('ball',[x,.91,.27],[.06,.065,.035],0xef776e);
   else if(variant==='화염 포격병'){add('cyl',[.53,.6,.18],[.15,.52,.15],0x5b4c49,Math.PI/2);add('ball',[.53,.58,.48],[.1,.1,.08],0xffa361);}
   else if(variant==='심연의 파수꾼'){add('box',[0,.9,.31],[.36,.08,.05],0x8be6e5);for(const x of [-.34,.34])add('rock',[x,1.1,-.04],[.13,.2,.14],0x507b85);}
