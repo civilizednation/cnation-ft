@@ -17,7 +17,7 @@ FONTS = {
     'stylish.woff2': 'https://raw.githubusercontent.com/google/fonts/main/ofl/stylish/Stylish-Regular.ttf',
     'gowun-dodum.woff2': 'https://raw.githubusercontent.com/google/fonts/main/ofl/gowundodum/GowunDodum-Regular.ttf',
 }
-SOURCES = ['index.html', 'game.js', 'revisions.html']
+SOURCES = ['index.html', 'game.js', 'revisions.html', 'i18n-en.js']
 CACHE = os.path.join(ROOT, '.font-src')
 
 def used_text():
