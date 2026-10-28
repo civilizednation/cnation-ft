@@ -1,9 +1,9 @@
 /* cnation TACTICS. Network-first updates; offline fallback. Version history: revisions.html */
-const VERSION='1.6.9';
+const VERSION='1.7.0';
 const CACHE='cnation-tactics-v'+VERSION;
 const BASE=new URL('./',self.location.href).href;
-const ASSETS=['index.html','vendor/three-r170.js?v=r170','game.js?v='+VERSION,'fonts/stylish.woff2?v=25','fonts/gowun-dodum.woff2?v=25'].map(p=>new URL(p,BASE).href);
-const CACHED_PATHS=['','index.html','game.js','vendor/three-r170.js','manifest.webmanifest','icon.png','fonts/stylish.woff2','fonts/gowun-dodum.woff2'];
+const ASSETS=['index.html','vendor/three-r170.js?v=r170','game.js?v='+VERSION,'i18n-en.js?v='+VERSION,'fonts/stylish.woff2?v=26','fonts/gowun-dodum.woff2?v=26'].map(p=>new URL(p,BASE).href);
+const CACHED_PATHS=['','index.html','game.js','i18n-en.js','vendor/three-r170.js','manifest.webmanifest','icon.png','fonts/stylish.woff2','fonts/gowun-dodum.woff2'];
 self.addEventListener('message',event=>{if(event.data==='TACTICS_VERSION')event.ports[0]?.postMessage(VERSION);});
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('cnation-tactics-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

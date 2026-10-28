@@ -118,6 +118,17 @@ uses `mainPixelRatio()` 1.5. Unit labels write to the DOM only on change (`setSt
 `InstancedMesh`es (`auraInstanceMesh`, `updateElementalAuras`, shared math in `auraParticle`); codex/ending keep `makeElementalAura`.
 Ghost-model monsters (physical immunity) use the shared translucent `ghostMat` instead of `sharedMat`; `disposeGroup` never disposes either.
 
+## English (v1.7.0)
+Settings row 「언어 · Language」 (`#setLanguage`, `translate="no"`) stores `cnation-tactics-lang` in localStorage and reloads
+(`setLanguage`). The game, its saves and all game.js strings stay Korean. With `en`, an inline head script in index.html sets
+`<html lang="en">`, hides the page (`i18n-pending`, 4 s failsafe) and loads `i18n-en.js?v=x.y.z` (bump it with the version).
+`i18n-en.js` = `window.TACTICS_EN_DICT` (Korean fragment → English) + an engine that rewrites text nodes and
+aria-label/title/placeholder/alt through a MutationObserver: whole-string match → longest-first fragments → number+unit
+rules (3턴 → 3 turns) → leftover particles. Elements with `translate="no"` are skipped. `UI_LANG`/`UI_LOCALE` in game.js;
+logic that reads DOM text must accept the English form too (`CLICK_DONE_WORDS`, `SHEET_SPLITS`).
+**After adding or changing in-game Korean text, add its English to the dictionary** and check `window.__i18nMissing`
+in English mode (empty = every Korean string shown so far was translated).
+
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
 Any new field on save/battle/unit must stay valid under these checks (or update them with migration in `normalizeSave`).
