@@ -8,8 +8,8 @@
 <style>
 :root{color-scheme:dark;--bg:#0a171e;--card:#122830;--line:#ffffff1c;--ink:#e6eee6;--muted:#94aaa7;--gold:#e7bd70;--mint:#8fe5b4}
 *{box-sizing:border-box}
-@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=26") format("woff2");font-display:swap;size-adjust:118%}
-@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=26") format("woff2");font-display:swap;size-adjust:104%}
+@font-face{font-family:"Stylish";src:url("fonts/stylish.woff2?v=27") format("woff2");font-display:swap;size-adjust:118%}
+@font-face{font-family:"Gowun Dodum";src:url("fonts/gowun-dodum.woff2?v=27") format("woff2");font-display:swap;size-adjust:104%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Gowun Dodum",-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))}
 main{max-width:680px;margin:0 auto}
 a{color:var(--gold)}
@@ -36,8 +36,12 @@ code{font-size:12px;background:#ffffff12;border-radius:4px;padding:1px 4px}
 <div class="eyebrow">CNATION TACTICS · THE ARCA CHRONICLE</div>
 <h1>Revision History</h1>
 
+<section class="rev" id="v1.7.2">
+<h2>ver.1.7.2 <span class="date">2026-10-30</span> <span class="tag">현재</span></h2>
+<h3>변경</h3><ul><li>전투 불능 아군을 선택하면 하단 상태창에 전투 불능 상태와 안내를 표시합니다(전장 위 「전투 불능」 라벨은 제거). 파티 목록에도 회색으로 표시되어 바로 선택할 수 있습니다</li><li>쓰러진 모습을 80% 크기로 줄이고 칸 가운데에 눕도록 정렬했습니다</li><li>승리 후에도 쓰러진 아군은 누운 채로 전투가 끝나고, 승리 결과 화면에서 HP가 회복되는 동안 회색에서 원래 색으로 돌아옵니다</li></ul>
+</section>
 <section class="rev" id="v1.7.1">
-<h2>ver.1.7.1 <span class="date">2026-10-30</span> <span class="tag">현재</span></h2>
+<h2>ver.1.7.1 <span class="date">2026-10-30</span></h2>
 <h3>변경</h3><ul><li>아군이 HP 0이 되면 전장에서 사라지지 않고, 그 자리에 하늘을 보고 쓰러져 회색으로 표시됩니다(「전투 불능」 표시)</li><li>전투 불능인 아군이 있는 칸은 아군·적 모두 지나가거나 멈출 수 없습니다(밀쳐내기·소환도 그 칸으로 불가)</li><li>전투에서 승리하면 쓰러졌던 아군이 그 자리에서 천천히 일어나며 원래 색으로 돌아옵니다</li></ul>
 </section>
 <section class="rev" id="v1.7.0">
