@@ -118,6 +118,13 @@ uses `mainPixelRatio()` 1.5. Unit labels write to the DOM only on change (`setSt
 `InstancedMesh`es (`auraInstanceMesh`, `updateElementalAuras`, shared math in `auraParticle`); codex/ending keep `makeElementalAura`.
 Ghost-model monsters (physical immunity) use the shared translucent `ghostMat` instead of `sharedMat`; `disposeGroup` never disposes either.
 
+## Downed allies (v1.7.1)
+An ally at 0 HP stays on its tile lying on its back (`downPose`: body rotation.x −90°, `DOWN_SHIFT`/`DOWN_LIFT`), greyed by a
+per-unit `downMaterial()` (sharedMat clone, `uGrey` shader uniform; back to `sharedMat` when it gets up) and labelled 「전투 불능」
+(`.unit-label.downed .down-tag`). Its tile blocks everyone: `tileBlocked` (= `occ` or `downedAt`) in `moveCost`, push-backs and
+summons; `occ` itself still means a living unit (targeting). On victory (`battle.phase==='victory'`) it gets up in place and the
+result sheet waits 1.7 s. Enemies still vanish at 0 HP.
+
 ## English (v1.7.0)
 Settings row 「언어 · Language」 (`#setLanguage`, `translate="no"`) stores `cnation-tactics-lang` in localStorage and reloads
 (`setLanguage`). The game, its saves and all game.js strings stay Korean. With `en`, an inline head script in index.html sets
