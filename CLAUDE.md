@@ -118,14 +118,16 @@ uses `mainPixelRatio()` 1.5. Unit labels write to the DOM only on change (`setSt
 `InstancedMesh`es (`auraInstanceMesh`, `updateElementalAuras`, shared math in `auraParticle`); codex/ending keep `makeElementalAura`.
 Ghost-model monsters (physical immunity) use the shared translucent `ghostMat` instead of `sharedMat`; `disposeGroup` never disposes either.
 
-## Downed allies (v1.7.1–1.7.2)
+## Downed allies (v1.7.1–1.7.3)
 An ally at 0 HP stays on its tile lying on its back at 80% size (`downPose`: body rotation.x −90°, `DOWN_SCALE`, centred on the
 tile from the geometry bounding box, `downLift`), greyed by a per-unit `downMaterial()` (sharedMat clone, `uGrey` shader uniform;
 back to `sharedMat` when it gets up). No battlefield label: selecting it (grey party chip, or tapping the body in move mode) opens
 `renderDownedInfo` in the panel (`inspectDowned`, `inspectedDowned`). Its tile blocks everyone: `tileBlocked` (= `occ` or `downedAt`)
 in `moveCost`, push-backs and summons; `occ` itself still means a living unit (targeting). It stays down through the victory
 phase (revived rows of `battle.reward.recovery`); the victory sheet (`victoryPreview`) fades revived heroes from grey to colour
-while their HP refills. Enemies still vanish at 0 HP.
+while their HP refills. Hero eyes are a separate child mesh of the body (parts tagged `.eye` in `detailedHeroParts`);
+`closedEyeParts()` is a hidden second child, toggled by `setEyesClosed(body, closed)` (closed while down; on the victory sheet
+they open near the end of the colour fade). Enemies still vanish at 0 HP.
 
 ## English (v1.7.0)
 Settings row 「언어 · Language」 (`#setLanguage`, `translate="no"`) stores `cnation-tactics-lang` in localStorage and reloads
