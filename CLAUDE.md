@@ -142,6 +142,11 @@ logic that reads DOM text must accept the English form too (`CLICK_DONE_WORDS`, 
 **After adding or changing in-game Korean text, add its English to the dictionary** and check `window.__i18nMissing`
 in English mode (empty = every Korean string shown so far was translated).
 
+## Title diorama (v1.7.10)
+The title screen shows `makeTitleBattle()` (fixed `TITLE_SEED`, prologue map re-painted: river with bridge, stone ridge, forest),
+all six heroes (from a c5s0 battle) facing the c2b boss and elemental monsters; `battle.title` marks it (never persisted).
+`buildScene` frames it with zoom/pan (portrait vs `layout-landscape`); `renderLoop` sways the camera ±24° while `isTitle`.
+
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
 Any new field on save/battle/unit must stay valid under these checks (or update them with migration in `normalizeSave`).
