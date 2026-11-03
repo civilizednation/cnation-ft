@@ -117,6 +117,8 @@ touch/keys via `wakeRender`, camera easing); otherwise 30 fps, 10 fps behind an 
 uses `mainPixelRatio()` 1.5. Unit labels write to the DOM only on change (`setStyle`/`setText`). Battle elemental auras are three
 `InstancedMesh`es (`auraInstanceMesh`, `updateElementalAuras`, shared math in `auraParticle`); codex/ending keep `makeElementalAura`.
 Ghost-model monsters (physical immunity) use the shared translucent `ghostMat` instead of `sharedMat`; `disposeGroup` never disposes either.
+v1.7.8: so their facing reads, ghost parts tagged `.opaque` (hood, head) bake into a `sharedMat` child and `.solid` (dark face, glowing eyes)
+into a `ghostFaceMat` (unlit, shared, never disposed) child; a triangle in front of the ring marks the facing.
 
 ## Downed allies (v1.7.1–1.7.3)
 An ally at 0 HP stays on its tile lying on its back at 80% size (`downPose`: body rotation.x −90°, `DOWN_SCALE`, centred on the
