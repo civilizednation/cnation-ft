@@ -145,7 +145,7 @@ in English mode (empty = every Korean string shown so far was translated).
 ## Title diorama (v1.7.10)
 The title screen shows `makeTitleBattle()` (fixed `TITLE_SEED`, prologue map re-painted: river with bridge, stone ridge, forest),
 all six heroes (from a c5s0 battle) facing the c2b boss and elemental monsters; `battle.title` marks it (never persisted).
-`buildScene` frames it with zoom/pan (portrait vs `layout-landscape`); `renderLoop` sways the camera ±24° while `isTitle`.
+`buildScene` frames it with zoom/pan (portrait vs `layout-landscape`); `renderLoop` sways the camera ±24° while `isTitle`. It is locked: canvas `pointerdown` and `wheel` return early on the title.
 
 ## Saves
 `validSave`/`validBattle` are strict; a save that fails validation is treated as damaged on load.
