@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.7.12';
+const GAME_VERSION='1.7.13';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -57,7 +57,7 @@ heal:{name:'힐',mp:10,type:'heal',power:1.6,range:4,element:'light'},
 purify:{name:'정화',mp:6,type:'cleanse',range:4,area:1,element:'light'},
 blessing:{name:'빛의 축복',mp:12,type:'buff',range:3,area:1,buff:'atk',element:'light'},
 holy:{name:'홀리',mp:14,type:'magic',power:1.5,range:4,area:1,heightRange:2,element:'light'},
-miracle:{name:'생명의 기적',mp:30,type:'heal',power:2.5,range:5,area:3,heightRange:99,cleanse:true,element:'light'},
+miracle:{name:'생명의 기적',mp:40,type:'heal',power:1.8,range:5,area:2,heightRange:99,cleanse:true,element:'light'},
 backstab:{name:'그림자 찌르기',mp:7,type:'physical',power:1.5,range:1,ignore:.3},
 sleep:{name:'수면 단검',mp:9,type:'physical',power:1,range:2,status:'sleep',chance:.7},
 silence:{name:'침묵의 표식',mp:10,type:'physical',power:1.25,range:3,status:'silence',chance:1,element:'dark'},
@@ -1256,7 +1256,7 @@ heal:'아군 한 명의 HP를 회복합니다. MP 9를 소모하며 기본 회�
 purify:'지정 위치와 주변 아군의 해로운 상태 효과를 해제합니다. 독·화상·빙결·침묵·수면·기절·방어 약화·도발을 제거하며 공격 강화·방어 강화 같은 이로운 효과는 유지합니다. HP 자체를 회복하지 않으며 전투 불능인 아군은 대상이 아닙니다.',
 blessing:'지정 위치 주변 아군의 공격을 강화합니다. 물리 공격력과 마법 공격력으로 계산하는 피해가 모두 25% 증가합니다. HP 회복 효과는 없습니다. 카일의 용기의 맹세와 같은 강화이므로 둘을 겹쳐 사용해도 50%가 되지 않습니다.',
 holy:'빛 속성의 범위 마법 공격입니다. 지정 위치와 주변의 적에게 피해를 주며 암흑 속성 대상에게 유리합니다. 이름과 달리 아군 HP를 회복하거나 상태를 해제하는 기술은 아닙니다.',
-miracle:'넓은 범위의 아군 HP를 회복하고 해로운 상태 효과를 함께 해제합니다. 기본 회복량은 마법 공격력의 250%에 15를 더한 값입니다. 공격 강화·방어 강화 같은 이로운 효과는 유지하며 전투 불능인 아군을 부활시키지는 않습니다.',
+miracle:'넓은 범위의 아군 HP를 회복하고 해로운 상태 효과를 함께 해제합니다. 기본 회복량은 마법 공격력의 180%에 15를 더한 값입니다. 공격 강화·방어 강화 같은 이로운 효과는 유지하며 전투 불능인 아군을 부활시키지는 않습니다.',
 backstab:'인접한 적 한 명을 찌르는 물리 공격입니다. 물리 방어력의 30%를 무시합니다. 후방에 있어야만 사용할 수 있는 것은 아니지만, 후방 공격 보너스와 네로의 전직 패시브를 함께 활용하면 더 강해집니다.',
 sleep:'짧은 거리의 적에게 물리 피해를 주고 수면을 노립니다. 수면 중에는 자기 페이즈의 이동과 행동을 할 수 없습니다. 피해를 받으면 잠에서 깨므로, 재우려는 적을 동료가 곧바로 공격하지 않도록 순서를 정하세요.',
 silence:'적 한 명에게 암흑 속성 물리 피해를 주고 침묵을 부여합니다. 일반 적에게 명중하면 침묵이 적용됩니다. 아군이 침묵 상태라면 비물리 스킬을 사용할 수 없고, 적 마법 유닛은 기본 공격을 근접 물리 공격으로 바꿉니다.',
