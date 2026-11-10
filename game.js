@@ -7,7 +7,7 @@
 (()=>{
 const THREE=CNATION3D;const {mergeGeometries}=CNATION3D;
 // cnation TACTICS. All art and sounds are procedural. No external assets.
-const GAME_VERSION='1.7.13';
+const GAME_VERSION='1.7.14';
 // v1.5.0: WASD camera panning (held keys, applied each frame in renderLoop).
 var heldPanKeys=new Set();const PAN_KEYS={KeyW:[0,1],KeyS:[0,-1],KeyA:[-1,0],KeyD:[1,0]};
 const $=s=>document.querySelector(s), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), copy=o=>JSON.parse(JSON.stringify(o)), sleep=ms=>new Promise(r=>setTimeout(r,ms/(save?.settings.speed||1)/visualSlow)), dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.z-b.z), key=(x,z)=>`${x},${z}`;
@@ -57,7 +57,7 @@ heal:{name:'힐',mp:10,type:'heal',power:1.6,range:4,element:'light'},
 purify:{name:'정화',mp:6,type:'cleanse',range:4,area:1,element:'light'},
 blessing:{name:'빛의 축복',mp:12,type:'buff',range:3,area:1,buff:'atk',element:'light'},
 holy:{name:'홀리',mp:14,type:'magic',power:1.5,range:4,area:1,heightRange:2,element:'light'},
-miracle:{name:'생명의 기적',mp:40,type:'heal',power:1.8,range:5,area:2,heightRange:99,cleanse:true,element:'light'},
+miracle:{name:'생명의 기적',mp:45,type:'heal',power:1.8,range:5,area:2,heightRange:99,cleanse:true,element:'light'},
 backstab:{name:'그림자 찌르기',mp:7,type:'physical',power:1.5,range:1,ignore:.3},
 sleep:{name:'수면 단검',mp:9,type:'physical',power:1,range:2,status:'sleep',chance:.7},
 silence:{name:'침묵의 표식',mp:10,type:'physical',power:1.25,range:3,status:'silence',chance:1,element:'dark'},
